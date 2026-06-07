@@ -1,0 +1,22 @@
+{
+  "name": "@lc/overlay",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Blitz-style in-game overlay for League of Legends, powered only by Riot's official Live Client Data API.",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/copy-assets.mjs",
+    "dev": "tsc -p tsconfig.json && node scripts/copy-assets.mjs && electron .",
+    "start": "electron .",
+    "mock": "cross-env LC_OVERLAY_MOCK=1 electron .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "cross-env": "^7.0.3",
+    "electron": "^33.2.1",
+    "typescript": "^5.7.2"
+  }
+}

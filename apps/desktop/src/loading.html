@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Ryot</title>
+    <link rel="stylesheet" href="./settings.css" />
+    <style>
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        text-align: center;
+      }
+      .box {
+        max-width: 460px;
+      }
+      .big {
+        font-family: "Anton", sans-serif;
+        font-size: 64px;
+        letter-spacing: 0.02em;
+        line-height: 0.9;
+        text-transform: uppercase;
+      }
+      .big b {
+        color: var(--gold);
+        font-weight: 400;
+      }
+      p {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.6;
+        margin-top: 16px;
+      }
+      code {
+        font-family: "Space Mono", monospace;
+        color: var(--gold2);
+        font-size: 13px;
+        word-break: break-all;
+      }
+      button {
+        margin-top: 22px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <div class="big"><b>RY</b>OT</div>
+      <p id="msg">Connecting to your Ryot server…</p>
+      <button id="open" class="primary" style="display: none">
+        Open Settings
+      </button>
+      <button id="retry" style="display: none; margin-left: 10px">Retry</button>
+    </div>
+    <script>
+      const params = new URLSearchParams(location.search);
+      if (params.get("error") === "1") {
+        const target = params.get("target") || "the configured URL";
+        document.getElementById("msg").innerHTML =
+          "Couldn't reach <code>" +
+          target +
+          "</code>.<br/>Make sure your Ryot server is running, or set the correct URL in Settings.";
+        document.getElementById("open").style.display = "inline-block";
+        document.getElementById("retry").style.display = "inline-block";
+      }
+      document
+        .getElementById("open")
+        .addEventListener("click", () => window.ryot?.openSettings());
+      document
+        .getElementById("retry")
+        .addEventListener("click", () => window.ryot?.reload());
+    </script>
+  </body>
+</html>

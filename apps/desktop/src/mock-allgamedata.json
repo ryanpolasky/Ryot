@@ -1,0 +1,556 @@
+{
+  "activePlayer": {
+    "summonerName": "TopDiff",
+    "riotIdGameName": "TopDiff",
+    "currentGold": 1485,
+    "level": 14
+  },
+  "gameData": {
+    "gameMode": "CLASSIC",
+    "gameTime": 1125,
+    "mapName": "Map11",
+    "mapNumber": 11
+  },
+  "events": {
+    "Events": [
+      {
+        "EventID": 0,
+        "EventName": "GameStart",
+        "EventTime": 0
+      },
+      {
+        "EventID": 1,
+        "EventName": "MinionsSpawning",
+        "EventTime": 65
+      },
+      {
+        "EventID": 7,
+        "EventName": "DragonKill",
+        "EventTime": 942.1,
+        "DragonType": "Fire",
+        "KillerName": "Lee Sin"
+      },
+      {
+        "EventID": 9,
+        "EventName": "HeraldKill",
+        "EventTime": 1010.3,
+        "KillerName": "Lee Sin"
+      },
+      {
+        "EventID": 999,
+        "EventName": "InhibKilled",
+        "EventTime": 925,
+        "KillerName": "Lee Sin"
+      }
+    ]
+  },
+  "allPlayers": [
+    {
+      "championName": "Aatrox",
+      "rawChampionName": "game_character_displayname_Aatrox",
+      "summonerName": "TopDiff",
+      "riotIdGameName": "TopDiff",
+      "isBot": false,
+      "isDead": false,
+      "respawnTimer": 0,
+      "level": 14,
+      "position": "TOP",
+      "team": "ORDER",
+      "scores": {
+        "kills": 5,
+        "deaths": 2,
+        "assists": 3,
+        "creepScore": 184,
+        "wardScore": 12.3
+      },
+      "items": [
+        {
+          "itemID": 6630,
+          "slot": 0,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 3047,
+          "slot": 1,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 3071,
+          "slot": 2,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 1037,
+          "slot": 3,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        }
+      ],
+      "summonerSpells": {
+        "summonerSpellOne": {
+          "displayName": "Flash"
+        },
+        "summonerSpellTwo": {
+          "displayName": "Teleport"
+        }
+      }
+    },
+    {
+      "championName": "Lee Sin",
+      "rawChampionName": "game_character_displayname_LeeSin",
+      "summonerName": "InsecKing",
+      "riotIdGameName": "InsecKing",
+      "isBot": false,
+      "isDead": false,
+      "respawnTimer": 0,
+      "level": 13,
+      "position": "JUNGLE",
+      "team": "ORDER",
+      "scores": {
+        "kills": 7,
+        "deaths": 3,
+        "assists": 9,
+        "creepScore": 142,
+        "wardScore": 24.1
+      },
+      "items": [
+        {
+          "itemID": 6692,
+          "slot": 0,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 3047,
+          "slot": 1,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 3814,
+          "slot": 2,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        }
+      ],
+      "summonerSpells": {
+        "summonerSpellOne": {
+          "displayName": "Flash"
+        },
+        "summonerSpellTwo": {
+          "displayName": "Smite"
+        }
+      }
+    },
+    {
+      "championName": "Ahri",
+      "rawChampionName": "game_character_displayname_Ahri",
+      "summonerName": "NineTails",
+      "riotIdGameName": "NineTails",
+      "isBot": false,
+      "isDead": true,
+      "respawnTimer": 14.2,
+      "level": 14,
+      "position": "MIDDLE",
+      "team": "ORDER",
+      "scores": {
+        "kills": 6,
+        "deaths": 4,
+        "assists": 6,
+        "creepScore": 201,
+        "wardScore": 15
+      },
+      "items": [
+        {
+          "itemID": 6655,
+          "slot": 0,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 3020,
+          "slot": 1,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 4645,
+          "slot": 2,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        }
+      ],
+      "summonerSpells": {
+        "summonerSpellOne": {
+          "displayName": "Flash"
+        },
+        "summonerSpellTwo": {
+          "displayName": "Ignite"
+        }
+      }
+    },
+    {
+      "championName": "Jinx",
+      "rawChampionName": "game_character_displayname_Jinx",
+      "summonerName": "GetJinxed",
+      "riotIdGameName": "GetJinxed",
+      "isBot": false,
+      "isDead": false,
+      "respawnTimer": 0,
+      "level": 13,
+      "position": "BOTTOM",
+      "team": "ORDER",
+      "scores": {
+        "kills": 9,
+        "deaths": 1,
+        "assists": 5,
+        "creepScore": 223,
+        "wardScore": 9.8
+      },
+      "items": [
+        {
+          "itemID": 3031,
+          "slot": 0,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 3006,
+          "slot": 1,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 3094,
+          "slot": 2,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 1038,
+          "slot": 3,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        }
+      ],
+      "summonerSpells": {
+        "summonerSpellOne": {
+          "displayName": "Flash"
+        },
+        "summonerSpellTwo": {
+          "displayName": "Heal"
+        }
+      }
+    },
+    {
+      "championName": "Thresh",
+      "rawChampionName": "game_character_displayname_Thresh",
+      "summonerName": "HookCity",
+      "riotIdGameName": "HookCity",
+      "isBot": false,
+      "isDead": false,
+      "respawnTimer": 0,
+      "level": 11,
+      "position": "UTILITY",
+      "team": "ORDER",
+      "scores": {
+        "kills": 1,
+        "deaths": 4,
+        "assists": 18,
+        "creepScore": 38,
+        "wardScore": 51.4
+      },
+      "items": [
+        {
+          "itemID": 3190,
+          "slot": 0,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 3047,
+          "slot": 1,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 3877,
+          "slot": 2,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        }
+      ],
+      "summonerSpells": {
+        "summonerSpellOne": {
+          "displayName": "Flash"
+        },
+        "summonerSpellTwo": {
+          "displayName": "Ignite"
+        }
+      }
+    },
+    {
+      "championName": "Darius",
+      "rawChampionName": "game_character_displayname_Darius",
+      "summonerName": "NoxianMight",
+      "riotIdGameName": "NoxianMight",
+      "isBot": false,
+      "isDead": false,
+      "respawnTimer": 0,
+      "level": 13,
+      "position": "TOP",
+      "team": "CHAOS",
+      "scores": {
+        "kills": 4,
+        "deaths": 5,
+        "assists": 2,
+        "creepScore": 176,
+        "wardScore": 8.2
+      },
+      "items": [
+        {
+          "itemID": 6630,
+          "slot": 0,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 3047,
+          "slot": 1,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 3133,
+          "slot": 2,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        }
+      ],
+      "summonerSpells": {
+        "summonerSpellOne": {
+          "displayName": "Flash"
+        },
+        "summonerSpellTwo": {
+          "displayName": "Ghost"
+        }
+      }
+    },
+    {
+      "championName": "Elise",
+      "rawChampionName": "game_character_displayname_Elise",
+      "summonerName": "SpiderQueen",
+      "riotIdGameName": "SpiderQueen",
+      "isBot": false,
+      "isDead": false,
+      "respawnTimer": 0,
+      "level": 12,
+      "position": "JUNGLE",
+      "team": "CHAOS",
+      "scores": {
+        "kills": 3,
+        "deaths": 6,
+        "assists": 7,
+        "creepScore": 128,
+        "wardScore": 22.6
+      },
+      "items": [
+        {
+          "itemID": 6692,
+          "slot": 0,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 3158,
+          "slot": 1,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        }
+      ],
+      "summonerSpells": {
+        "summonerSpellOne": {
+          "displayName": "Flash"
+        },
+        "summonerSpellTwo": {
+          "displayName": "Smite"
+        }
+      }
+    },
+    {
+      "championName": "Zed",
+      "rawChampionName": "game_character_displayname_Zed",
+      "summonerName": "ShadowStep",
+      "riotIdGameName": "ShadowStep",
+      "isBot": false,
+      "isDead": false,
+      "respawnTimer": 0,
+      "level": 14,
+      "position": "MIDDLE",
+      "team": "CHAOS",
+      "scores": {
+        "kills": 8,
+        "deaths": 5,
+        "assists": 3,
+        "creepScore": 197,
+        "wardScore": 10.1
+      },
+      "items": [
+        {
+          "itemID": 6692,
+          "slot": 0,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 3047,
+          "slot": 1,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 3142,
+          "slot": 2,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        }
+      ],
+      "summonerSpells": {
+        "summonerSpellOne": {
+          "displayName": "Flash"
+        },
+        "summonerSpellTwo": {
+          "displayName": "Ignite"
+        }
+      }
+    },
+    {
+      "championName": "Caitlyn",
+      "rawChampionName": "game_character_displayname_Caitlyn",
+      "summonerName": "SheriffPB",
+      "riotIdGameName": "SheriffPB",
+      "isBot": false,
+      "isDead": false,
+      "respawnTimer": 0,
+      "level": 13,
+      "position": "BOTTOM",
+      "team": "CHAOS",
+      "scores": {
+        "kills": 5,
+        "deaths": 6,
+        "assists": 4,
+        "creepScore": 215,
+        "wardScore": 11.7
+      },
+      "items": [
+        {
+          "itemID": 3031,
+          "slot": 0,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 3006,
+          "slot": 1,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 3036,
+          "slot": 2,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        }
+      ],
+      "summonerSpells": {
+        "summonerSpellOne": {
+          "displayName": "Flash"
+        },
+        "summonerSpellTwo": {
+          "displayName": "Heal"
+        }
+      }
+    },
+    {
+      "championName": "Lulu",
+      "rawChampionName": "game_character_displayname_Lulu",
+      "summonerName": "PixGremlin",
+      "riotIdGameName": "PixGremlin",
+      "isBot": false,
+      "isDead": false,
+      "respawnTimer": 0,
+      "level": 11,
+      "position": "UTILITY",
+      "team": "CHAOS",
+      "scores": {
+        "kills": 0,
+        "deaths": 7,
+        "assists": 12,
+        "creepScore": 32,
+        "wardScore": 48.9
+      },
+      "items": [
+        {
+          "itemID": 6617,
+          "slot": 0,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 3158,
+          "slot": 1,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        },
+        {
+          "itemID": 3504,
+          "slot": 2,
+          "count": 1,
+          "price": 0,
+          "canUse": false
+        }
+      ],
+      "summonerSpells": {
+        "summonerSpellOne": {
+          "displayName": "Flash"
+        },
+        "summonerSpellTwo": {
+          "displayName": "Exhaust"
+        }
+      }
+    }
+  ]
+}

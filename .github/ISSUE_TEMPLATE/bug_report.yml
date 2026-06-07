@@ -1,0 +1,54 @@
+name: Bug report
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug! For **security** issues, please
+        use [Security Advisories](https://github.com/ryanpolasky/ryot/security/advisories/new)
+        instead of a public issue.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+      placeholder: When I ..., I expected ..., but instead ...
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+        3. See error
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where did it happen?
+      options:
+        - Web app
+        - Desktop app (main window)
+        - In-game overlay
+        - Champ-select pre-game
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS / environment
+      placeholder: e.g. macOS 14.5 (Apple Silicon), Windows 11, Chrome 126
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console output / screenshots
+      description: Paste any relevant logs or attach screenshots.
+    validations:
+      required: false

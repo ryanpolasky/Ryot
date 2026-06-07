@@ -1,0 +1,52 @@
+name: Release
+
+# Push a tag that matches the desktop app version to build + publish installers.
+#   1. bump "version" in apps/desktop/package.json (e.g. 0.1.1)
+#   2. git tag v0.1.1 && git push origin v0.1.1
+# electron-builder builds on each OS runner and uploads the installers plus the
+# latest*.yml manifests that electron-updater reads, to a GitHub Release named
+# after the tag.
+on:
+  push:
+    tags:
+      - "v*"
+
+# Needed for electron-builder to create the GitHub Release via GITHUB_TOKEN.
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build & publish (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build & publish desktop installer
+        working-directory: apps/desktop
+        run: pnpm run release
+        env:
+          # Provided automatically by Actions; lets electron-builder create the
+          # release and upload assets. No PAT needed.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # macOS signing/notarization (optional): add these as repo secrets to
+          # produce signed builds. Unset = unsigned (fine for a friend group).
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}

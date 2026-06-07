@@ -1,0 +1,92 @@
+{
+  "myTeam": [
+    {
+      "cellId": 0,
+      "championId": 266,
+      "summonerId": 1001,
+      "spell1Id": 4,
+      "spell2Id": 12,
+      "assignedPosition": "top"
+    },
+    {
+      "cellId": 1,
+      "championId": 64,
+      "summonerId": 1002,
+      "spell1Id": 4,
+      "spell2Id": 11,
+      "assignedPosition": "jungle"
+    },
+    {
+      "cellId": 2,
+      "championId": 103,
+      "summonerId": 1003,
+      "spell1Id": 4,
+      "spell2Id": 14,
+      "assignedPosition": "middle"
+    },
+    {
+      "cellId": 3,
+      "championId": 222,
+      "summonerId": 1004,
+      "spell1Id": 4,
+      "spell2Id": 7,
+      "assignedPosition": "bottom"
+    },
+    {
+      "cellId": 4,
+      "championId": 412,
+      "summonerId": 1005,
+      "spell1Id": 4,
+      "spell2Id": 14,
+      "assignedPosition": "utility"
+    }
+  ],
+  "theirTeam": [
+    {
+      "cellId": 5,
+      "championId": 122,
+      "summonerId": 2001,
+      "spell1Id": 4,
+      "spell2Id": 12,
+      "assignedPosition": ""
+    },
+    {
+      "cellId": 6,
+      "championId": 76,
+      "summonerId": 2002,
+      "spell1Id": 4,
+      "spell2Id": 11,
+      "assignedPosition": ""
+    },
+    {
+      "cellId": 7,
+      "championId": 238,
+      "summonerId": 2003,
+      "spell1Id": 4,
+      "spell2Id": 14,
+      "assignedPosition": ""
+    },
+    {
+      "cellId": 8,
+      "championId": 51,
+      "summonerId": 2004,
+      "spell1Id": 4,
+      "spell2Id": 7,
+      "assignedPosition": ""
+    },
+    {
+      "cellId": 9,
+      "championId": 117,
+      "summonerId": 2005,
+      "spell1Id": 4,
+      "spell2Id": 3,
+      "assignedPosition": ""
+    }
+  ],
+  "bans": {
+    "myTeamBans": [157, 350, 555, 875, 901],
+    "theirTeamBans": [523, 234, 38, 145, 200]
+  },
+  "localPlayerCellId": 3,
+  "timer": { "phase": "FINALIZATION", "adjustedTimeLeftInPhase": 18000 }
+}

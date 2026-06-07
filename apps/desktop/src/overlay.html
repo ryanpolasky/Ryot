@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ryot Overlay</title>
+    <link rel="stylesheet" href="./overlay.css" />
+  </head>
+  <body>
+    <!-- 1. Stat panel (top-right by default, DRAGGABLE) -->
+    <div class="panel statpanel draggable" id="statpanel">
+      <div class="drag-handle" data-zone="statpanel"></div>
+      <div class="sp-head">
+        <span class="brand"><b>Ry</b>ot</span>
+        <span class="sp-clock" id="gametime">0:00</span>
+        <span class="status off" id="status">Waiting</span>
+      </div>
+      <div class="sp-rows" id="sp-rows"></div>
+    </div>
+
+    <!-- 3. Gold diff scoreboard (team + per-lane), shown on Tab hold -->
+    <div class="panel scoreboard" id="scoreboard">
+      <div class="gold-strip">
+        <span class="gs-blue" id="gs-blue">0</span>
+        <span class="gs-diff" id="gs-diff">0</span>
+        <span class="gs-red" id="gs-red">0</span>
+      </div>
+      <div class="lanes" id="lanes"></div>
+      <div class="sb-foot">
+        <span id="quit-wrap"
+          ><button id="quit" class="quit" title="Quit overlay">
+            &#x2715;
+          </button></span
+        >
+        item gold · Ctrl+Shift+O clicks · Ctrl+Shift+H hide
+      </div>
+    </div>
+
+    <!-- 2. Minimap objective timers (auto-placed over real minimap) -->
+    <div class="minimap" id="minimap">
+      <div class="mm-objs" id="mm-objs"></div>
+      <div class="mm-cal" id="mm-cal">minimap</div>
+    </div>
+
+    <!-- 6. HUD bar reference (only visible in calibration editor) -->
+    <div class="hud-ref" id="hud-ref">
+      <span class="hud-ref-label">HUD BAR</span>
+    </div>
+
+    <!-- 4. Next item / build (near minimap, DRAGGABLE) -->
+    <div class="panel nextbuy draggable" id="nextbuy">
+      <div class="drag-handle" data-zone="nextbuy"></div>
+      <div class="nb-head">
+        <span class="nb-champ" id="nb-champ"></span>
+        <span class="nb-role" id="nb-role"></span>
+      </div>
+      <div class="nb-alerts" id="nb-alerts"></div>
+      <div class="nb-body">
+        <div class="build-path" id="build-path"></div>
+        <div class="next-item" id="next-item"></div>
+      </div>
+    </div>
+
+    <!-- Edit mode toolbar (only visible in edit mode) -->
+    <div class="edit-toolbar" id="edit-toolbar">
+      <span class="edit-hint"
+        >Drag the gold-bordered panels to reposition. Load Practice Tool for
+        best results.</span
+      >
+      <button class="edit-btn" id="edit-save">Save</button>
+      <button class="edit-btn" id="edit-reset">Reset</button>
+      <button class="edit-btn" id="edit-done">Done</button>
+    </div>
+
+    <!-- Calibration (debug) editor: Ctrl+Shift+D -->
+    <div class="cal-inspector" id="cal-inspector">
+      <div class="cal-title">CALIBRATION EDITOR</div>
+      <div class="cal-map-row">
+        <span class="cal-map-label">MAP</span>
+        <button class="cal-map-btn active" id="cal-map-rift">Rift</button>
+        <button class="cal-map-btn" id="cal-map-aram">ARAM</button>
+      </div>
+      <div class="cal-zone-name" id="cal-zone-name">Select a zone</div>
+      <div class="cal-fields" id="cal-fields"></div>
+      <div class="cal-base" id="cal-base"></div>
+    </div>
+    <div class="cal-toolbar" id="cal-toolbar">
+      <span class="cal-hint"
+        >Ctrl+Shift+D | Drag & resize any zone. Click to select. Switch
+        Rift/ARAM to calibrate each map.</span
+      >
+      <button class="edit-btn" id="cal-save">Save to File</button>
+      <button class="edit-btn" id="cal-copy">Copy B-object</button>
+      <button class="edit-btn" id="cal-reset">Reset All</button>
+      <button class="edit-btn" id="cal-done">Done</button>
+    </div>
+
+    <script type="module" src="./renderer.js"></script>
+  </body>
+</html>

@@ -1,0 +1,31 @@
+{
+  "name": "@lc/desktop",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "author": "Ryan Polasky",
+  "description": "Ryot desktop app: a native window wrapping the Ryot site (auto-opens to your profile via the League Client) plus a Blitz-style in-game overlay and one-click rune/spell import.",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/copy-assets.mjs",
+    "dev": "tsc -p tsconfig.json && node scripts/copy-assets.mjs && electron .",
+    "start": "electron .",
+    "mock": "cross-env LC_OVERLAY_MOCK=1 electron .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "package": "pnpm run build && electron-builder --publish never",
+    "package:linux": "pnpm run build && electron-builder --linux --publish never",
+    "release": "pnpm run build && electron-builder --publish always"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "cross-env": "^7.0.3",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.9",
+    "uiohook-napi": "^1.5.5"
+  }
+}

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Ryot Pre-Game</title>
+    <link rel="stylesheet" href="./pregame.css" />
+  </head>
+  <body>
+    <div class="header">
+      <span class="brand"><b>RY</b>OT</span>
+      <span class="phase" id="phase">CHAMP SELECT</span>
+      <span class="timer" id="timer">0:30</span>
+    </div>
+
+    <div class="bans">
+      <div class="bans-group">
+        <span class="label">Your Bans</span>
+        <div id="my-bans" style="display: flex; gap: 5px"></div>
+      </div>
+      <div class="bans-divider"></div>
+      <div class="bans-group">
+        <span class="label">Enemy Bans</span>
+        <div id="their-bans" style="display: flex; gap: 5px"></div>
+      </div>
+    </div>
+
+    <!-- Comp analysis strip -->
+    <div class="comp-panel" id="comp-panel" style="display: none">
+      <div class="comp-side blue">
+        <div class="comp-label">Your Comp</div>
+        <div class="comp-tags" id="comp-tags-ally"></div>
+      </div>
+      <div class="comp-center">
+        <div class="comp-win" id="comp-win"></div>
+      </div>
+      <div class="comp-side red">
+        <div class="comp-label">Enemy Comp</div>
+        <div class="comp-tags" id="comp-tags-enemy"></div>
+      </div>
+    </div>
+
+    <div class="main">
+      <!-- Your team -->
+      <div class="team-col left">
+        <div class="team-label blue">Your Team</div>
+        <div id="my-team"></div>
+      </div>
+
+      <!-- Center: meta/counters + build + rune editor -->
+      <div class="center">
+        <div
+          id="matchup-panel"
+          class="matchup-panel"
+          style="display: none"
+        ></div>
+
+        <div class="section-title" id="board-title">Meta // Most Picked</div>
+        <div id="board"><div class="loading">Loading meta…</div></div>
+
+        <div id="build-section" style="display: none">
+          <div class="section-title">Your Build // Summoner Spells</div>
+          <div class="spell-row" id="spells"></div>
+
+          <div class="section-title">Runes // Click to Edit</div>
+          <div class="rune-editor" id="rune-editor"></div>
+
+          <div class="section-title">Recommended Items</div>
+          <div class="build-items" id="items"></div>
+
+          <div class="import-bar">
+            <button class="import-btn primary" id="import-runes">
+              Import Runes
+            </button>
+            <button class="import-btn" id="import-spells">Import Spells</button>
+            <button class="import-btn" id="import-items">
+              Import Item Set
+            </button>
+            <span class="import-status" id="import-status"></span>
+            <label class="auto-check"
+              ><input type="checkbox" id="auto-import" /><span
+                >Auto-import on lock-in</span
+              ></label
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- Enemy team -->
+      <div class="team-col right">
+        <div class="team-label red">
+          Enemy Team <span id="lane-pred-note"></span>
+        </div>
+        <div id="their-team"></div>
+      </div>
+    </div>
+
+    <script type="module" src="./pregame-renderer.js"></script>
+  </body>
+</html>

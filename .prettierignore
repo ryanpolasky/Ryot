@@ -1,0 +1,17 @@
+# dependencies
+node_modules
+
+# build output / generated
+dist
+.next
+out
+build
+coverage
+*.tsbuildinfo
+next-env.d.ts
+
+# desktop packaging
+apps/desktop/buildResources
+
+# lockfile (managed by pnpm)
+pnpm-lock.yaml

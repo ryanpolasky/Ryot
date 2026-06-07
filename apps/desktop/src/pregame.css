@@ -1,0 +1,773 @@
+@import url("https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap");
+
+:root {
+  --bg: #0a0a0b;
+  --surface: #100f12;
+  --surface2: #17161a;
+  --line: #26242b;
+  --bone: #f4f1e8;
+  --muted: #a39d92;
+  --faint: #6a655e;
+  --gold: #c8aa6e;
+  --gold2: #ecd197;
+  --win: #4d8df0;
+  --loss: #ff4d4d;
+  --notch: polygon(
+    0 0,
+    calc(100% - 10px) 0,
+    100% 10px,
+    100% 100%,
+    10px 100%,
+    0 calc(100% - 10px)
+  );
+  --notch-sm: polygon(
+    0 0,
+    calc(100% - 6px) 0,
+    100% 6px,
+    100% 100%,
+    6px 100%,
+    0 calc(100% - 6px)
+  );
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  background: var(--bg);
+  color: var(--bone);
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  overflow-y: auto;
+  user-select: none;
+}
+
+/* ── header ── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.header .brand {
+  font-family: "Anton", sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.header .brand b {
+  color: var(--gold);
+  font-weight: 400;
+}
+.header .phase {
+  font-family: "Space Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  color: var(--gold);
+}
+.header .timer {
+  font-family: "Space Mono", monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gold2);
+  margin-left: auto;
+}
+
+/* ── bans strip ── */
+.bans {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.bans-group {
+  display: flex;
+  gap: 5px;
+}
+.bans-group .label {
+  font-family: "Space Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-right: 6px;
+  align-self: center;
+}
+.ban-icon {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--line);
+  object-fit: cover;
+  filter: grayscale(40%);
+  clip-path: var(--notch-sm);
+}
+.ban-icon.empty {
+  background: var(--surface2);
+}
+.bans-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--line);
+}
+
+/* ── main layout: teams + center panel ── */
+.main {
+  display: grid;
+  grid-template-columns: 200px 1fr 200px;
+  gap: 0;
+  min-height: 540px;
+}
+
+/* ── team column ── */
+.team-col {
+  padding: 10px;
+  border-right: 1px solid var(--line);
+}
+.team-col.right {
+  border-right: none;
+  border-left: 1px solid var(--line);
+}
+.team-label {
+  font-family: "Space Mono", monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.team-label.blue {
+  color: var(--win);
+}
+.team-label.red {
+  color: var(--loss);
+}
+
+.player-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  margin-bottom: 4px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  clip-path: var(--notch-sm);
+  transition: border-color 0.15s;
+}
+.player-card.me {
+  border-color: var(--gold);
+}
+.player-card .champ-icon {
+  width: 36px;
+  height: 36px;
+  clip-path: var(--notch-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.player-card .champ-icon.empty {
+  background: var(--surface2);
+}
+.player-card .info {
+  flex: 1;
+  min-width: 0;
+}
+.player-card .champ-name {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.player-card .role-tag {
+  font-family: "Space Mono", monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.player-card .confidence {
+  font-family: "Space Mono", monospace;
+  font-size: 9px;
+  color: var(--muted);
+}
+.player-card .spells {
+  display: flex;
+  gap: 2px;
+}
+.player-card .spell-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+}
+
+/* ── center panel ── */
+.center {
+  padding: 14px 18px;
+  overflow-y: auto;
+}
+.section-title {
+  font-family: "Space Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin: 18px 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.section-title:first-child {
+  margin-top: 0;
+}
+
+/* meta board */
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+.meta-row img {
+  width: 24px;
+  height: 24px;
+  clip-path: var(--notch-sm);
+}
+.meta-row .name {
+  flex: 1;
+}
+.meta-row .role {
+  font-size: 10px;
+  color: var(--faint);
+}
+.meta-row .stat {
+  font-family: "Space Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+}
+.meta-row .stat.wr {
+  color: var(--gold2);
+}
+.meta-row .stat.games {
+  color: var(--muted);
+}
+
+/* counter bar (worst matchups) */
+.counter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px;
+}
+.counter-row img {
+  width: 28px;
+  height: 28px;
+  clip-path: var(--notch-sm);
+}
+.counter-row .name {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+}
+.counter-row .wr-bar {
+  width: 80px;
+  height: 8px;
+  background: var(--surface2);
+  border-radius: 0;
+  overflow: hidden;
+  position: relative;
+}
+.counter-row .wr-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+}
+.counter-row .wr-fill.low {
+  background: var(--loss);
+}
+.counter-row .wr-fill.mid {
+  background: var(--gold);
+}
+.counter-row .wr-fill.high {
+  background: var(--win);
+}
+.counter-row .wr-text {
+  font-family: "Space Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  width: 34px;
+  text-align: right;
+}
+
+/* ── rune editor ── */
+.rune-editor {
+  display: flex;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+.rune-tree {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 14px 16px;
+  clip-path: var(--notch);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+.rune-tree.shards-panel {
+  flex: 0 0 140px;
+  min-width: 140px;
+}
+
+/* tree header: icon + name */
+.tree-header {
+  font-family: "Anton", sans-serif;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.tree-header img {
+  width: 24px;
+  height: 24px;
+}
+
+/* row label (KEYSTONE, etc) */
+.rune-label {
+  font-family: "Space Mono", monospace;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  width: 100%;
+  text-align: center;
+  margin: 6px 0 4px;
+}
+
+/* path selector (small icons) */
+.path-selector {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding-bottom: 8px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+  width: 100%;
+}
+.path-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  overflow: hidden;
+  background: var(--surface2);
+  transition:
+    border-color 0.15s,
+    opacity 0.15s;
+  opacity: 0.35;
+}
+.path-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.path-btn.selected {
+  border-color: var(--gold);
+  opacity: 1;
+}
+.path-btn:hover {
+  opacity: 0.8;
+  border-color: var(--gold2);
+}
+
+/* rune slot row */
+.rune-slot {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+/* individual rune pick */
+.rune-pick {
+  width: 36px;
+  height: 36px;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  background: var(--surface2);
+  transition:
+    border-color 0.15s,
+    opacity 0.15s,
+    transform 0.15s;
+  opacity: 0.4;
+  flex-shrink: 0;
+}
+.rune-pick img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.rune-pick.selected {
+  border-color: var(--gold);
+  opacity: 1;
+  box-shadow: 0 0 10px rgba(200, 170, 110, 0.35);
+  transform: scale(1.08);
+}
+.rune-pick:hover {
+  opacity: 0.85;
+  border-color: var(--gold2);
+}
+.rune-pick.keystone {
+  width: 52px;
+  height: 52px;
+}
+
+/* divider between sections inside a panel */
+.rune-divider {
+  width: 60%;
+  height: 1px;
+  background: var(--line);
+  margin: 4px auto 2px;
+}
+
+/* shards */
+.shard-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 6px;
+  width: 100%;
+}
+.shard-pick {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  cursor: pointer;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Space Mono", monospace;
+  font-size: 9px;
+  color: var(--muted);
+  transition:
+    border-color 0.15s,
+    opacity 0.15s;
+  opacity: 0.45;
+}
+.shard-pick.selected {
+  border-color: var(--gold);
+  opacity: 1;
+  color: var(--bone);
+}
+.shard-pick:hover {
+  opacity: 0.8;
+  border-color: var(--gold2);
+}
+.shard-pick img {
+  width: 20px;
+  height: 20px;
+}
+
+/* ── build items ── */
+.build-items {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.build-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  clip-path: var(--notch-sm);
+  font-size: 11px;
+}
+.build-item img {
+  width: 28px;
+  height: 28px;
+  clip-path: var(--notch-sm);
+}
+
+/* spell icons in center panel */
+.spell-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+.spell-row img {
+  width: 32px;
+  height: 32px;
+  clip-path: var(--notch-sm);
+  border: 1px solid var(--line);
+}
+
+/* ── import bar ── */
+.import-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+.import-btn {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--bone);
+  cursor: pointer;
+  clip-path: var(--notch-sm);
+}
+.import-btn.primary {
+  background: var(--gold);
+  border-color: transparent;
+  color: var(--bg);
+}
+.import-btn.primary:hover {
+  background: var(--gold2);
+}
+.import-btn:hover {
+  border-color: var(--gold);
+}
+.import-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.auto-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.auto-check input {
+  width: auto;
+}
+
+.import-status {
+  font-family: "Space Mono", monospace;
+  font-size: 10px;
+  color: var(--gold2);
+  margin-left: 8px;
+}
+
+/* ── loading / empty states ── */
+.empty {
+  color: var(--faint);
+  font-size: 12px;
+  padding: 16px 0;
+  text-align: center;
+}
+.loading {
+  color: var(--faint);
+  font-size: 11px;
+}
+
+/* ── your-lane matchup tip ── */
+.matchup-panel {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  clip-path: var(--notch-sm);
+  padding: 12px;
+  margin-bottom: 14px;
+}
+.matchup-title {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 10px;
+}
+.matchup-vs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.matchup-vs img {
+  width: 46px;
+  height: 46px;
+  object-fit: cover;
+  clip-path: var(--notch-sm);
+  border: 1px solid var(--line);
+}
+.matchup-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 92px;
+}
+.matchup-wr {
+  font-family: "Space Mono", monospace;
+  font-size: 22px;
+  line-height: 1;
+}
+.matchup-wr.good {
+  color: var(--win);
+}
+.matchup-wr.bad {
+  color: var(--loss);
+}
+.matchup-wr.even {
+  color: var(--gold2);
+}
+.matchup-vs-label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin: 3px 0 1px;
+}
+.matchup-games {
+  font-family: "Space Mono", monospace;
+  font-size: 10px;
+  color: var(--muted);
+}
+.matchup-tip {
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--bone);
+  text-align: center;
+}
+.matchup-tip.good {
+  color: var(--win);
+}
+.matchup-tip.bad {
+  color: var(--loss);
+}
+.matchup-tip.even {
+  color: var(--muted);
+}
+
+/* ── Comp analysis panel ── */
+.comp-panel {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 10px 20px;
+  margin: 0 16px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  clip-path: var(--notch);
+}
+.comp-side {
+  flex: 1;
+  min-width: 0;
+}
+.comp-side.red {
+  text-align: right;
+}
+.comp-side.red .comp-tags {
+  justify-content: flex-end;
+}
+.comp-center {
+  width: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-top: 14px;
+}
+.comp-label {
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 6px;
+}
+.comp-side.blue .comp-label {
+  color: var(--win);
+}
+.comp-side.red .comp-label {
+  color: var(--loss);
+}
+.comp-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.comp-tag {
+  display: inline-block;
+  font-family: "Space Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.comp-tag.good {
+  background: rgba(77, 141, 240, 0.15);
+  color: var(--win);
+  border: 1px solid rgba(77, 141, 240, 0.3);
+}
+.comp-tag.warn {
+  background: rgba(255, 77, 77, 0.12);
+  color: var(--loss);
+  border: 1px solid rgba(255, 77, 77, 0.3);
+}
+.comp-tag.info {
+  background: rgba(200, 170, 110, 0.1);
+  color: var(--gold);
+  border: 1px solid rgba(200, 170, 110, 0.2);
+}
+.win-pct {
+  font-family: "Space Mono", monospace;
+  font-size: 18px;
+  font-weight: 700;
+}
+.win-pct.good {
+  color: var(--win);
+}
+.win-pct.bad {
+  color: var(--loss);
+}
+.win-pct.even {
+  color: var(--gold2);
+}
+.win-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--faint);
+}

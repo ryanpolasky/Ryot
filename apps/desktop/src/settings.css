@@ -1,0 +1,159 @@
+@import url("https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap");
+
+:root {
+  --bg: #0a0a0b;
+  --surface: #100f12;
+  --surface2: #17161a;
+  --line: #26242b;
+  --bone: #f4f1e8;
+  --muted: #a39d92;
+  --faint: #6a655e;
+  --gold: #c8aa6e;
+  --gold2: #ecd197;
+  --notch: polygon(
+    0 0,
+    calc(100% - 8px) 0,
+    100% 8px,
+    100% 100%,
+    8px 100%,
+    0 calc(100% - 8px)
+  );
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--bone);
+  font-family: "Space Grotesk", system-ui, sans-serif;
+  padding: 26px 28px;
+  user-select: none;
+}
+
+h1 {
+  font-family: "Anton", sans-serif;
+  font-weight: 400;
+  font-size: 30px;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+h1 b {
+  color: var(--gold);
+  font-weight: 400;
+}
+
+.kicker {
+  font-family: "Space Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 4px;
+}
+
+.rule {
+  height: 1px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+  margin: 16px 0 20px;
+}
+
+label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 16px 0 6px;
+}
+
+input,
+select {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--bone);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 14px;
+  padding: 10px 12px;
+  outline: none;
+}
+input:focus,
+select:focus {
+  border-color: var(--gold);
+}
+.hint {
+  font-size: 11px;
+  color: var(--faint);
+  margin-top: 5px;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+}
+.row > div {
+  flex: 1;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 18px;
+  cursor: pointer;
+}
+.check input {
+  width: auto;
+}
+.check span {
+  font-size: 13px;
+  color: var(--bone);
+}
+
+.actions {
+  margin-top: 26px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+button {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 11px 20px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--bone);
+  cursor: pointer;
+}
+button.primary {
+  background: var(--gold);
+  border-color: transparent;
+  color: var(--bg);
+  clip-path: var(--notch);
+}
+button.primary:hover {
+  background: var(--gold2);
+}
+button:hover {
+  border-color: var(--gold);
+}
+
+.saved {
+  color: var(--gold2);
+  font-size: 12px;
+  margin-right: auto;
+  align-self: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.saved.show {
+  opacity: 1;
+}

@@ -1,0 +1,320 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ryot design tokens, mirrored in tailwind.config.ts */
+:root {
+  color-scheme: dark;
+  --bg: #0a0a0b;
+  --surface: #100f12;
+  --surface-2: #17161a;
+  --line: #26242b;
+  --bone: #f4f1e8;
+  --muted: #a39d92;
+  /* Bumped from #6a655e to clear WCAG AA (4.5:1) for small text on the near-black bg. */
+  --faint: #857f74;
+  /* gold as rgb channels so opacity modifiers + per-subtree retint both work */
+  --gold-rgb: 200 170 110;
+  --gold-2-rgb: 236 209 151;
+  --gold: rgb(var(--gold-rgb));
+  --gold-2: rgb(var(--gold-2-rgb));
+  --win: #4d8df0;
+  --loss: #ff4d4d;
+
+  /* angular signature: cut top-right + bottom-left corners */
+  --notch: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  );
+  --notch-sm: polygon(
+    0 0,
+    calc(100% - 7px) 0,
+    100% 7px,
+    100% 100%,
+    7px 100%,
+    0 calc(100% - 7px)
+  );
+}
+
+@layer base {
+  body {
+    @apply bg-bg font-sans text-bone antialiased;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(
+        120% 80% at 50% -20%,
+        rgba(200, 170, 110, 0.14),
+        transparent 55%
+      ),
+      radial-gradient(
+        80% 60% at 100% 0%,
+        rgba(77, 141, 240, 0.06),
+        transparent 50%
+      );
+    background-attachment: fixed;
+  }
+
+  /* Film grain overlay */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0.045;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* champion-theme splash backdrop, scrimmed for legibility. shown only when active. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      linear-gradient(
+        180deg,
+        rgba(10, 10, 11, 0.72) 0%,
+        rgba(10, 10, 11, 0.9) 48%,
+        var(--bg) 82%
+      ),
+      var(--champion-splash, none);
+    background-repeat: no-repeat;
+    background-position: center top;
+    background-size: cover;
+  }
+  :root:not([data-champion-theme]) body::before {
+    display: none;
+  }
+  /* tighten the scrim on small screens where cover zooms a wide splash */
+  @media (max-width: 640px) {
+    body::before {
+      background-image:
+        linear-gradient(
+          180deg,
+          rgba(10, 10, 11, 0.78) 0%,
+          rgba(10, 10, 11, 0.94) 38%,
+          var(--bg) 64%
+        ),
+        var(--champion-splash, none);
+    }
+  }
+
+  a {
+    @apply text-inherit no-underline;
+  }
+  ::selection {
+    background: var(--gold);
+    color: var(--bg);
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+}
+
+@layer components {
+  /* Sharp editorial panel */
+  .card {
+    @apply relative border border-line bg-surface;
+  }
+  .card-hover {
+    @apply transition-colors duration-150 hover:border-gold/60;
+  }
+
+  /* Skeleton loading block with a left-to-right shimmer sweep */
+  .skeleton {
+    @apply relative overflow-hidden bg-surface2;
+  }
+  .skeleton::after {
+    content: "";
+    @apply absolute inset-0 -translate-x-full animate-shimmer;
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.06),
+      transparent
+    );
+  }
+
+  /* Angular notched clip-path */
+  .notch {
+    clip-path: var(--notch);
+  }
+  .notch-sm {
+    clip-path: var(--notch-sm);
+  }
+
+  /* Kicker / section label: mono, uppercase, tracked, gold tick */
+  .kicker {
+    @apply flex items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-muted;
+  }
+  .kicker::before {
+    content: "";
+    @apply h-2.5 w-2.5 bg-gold;
+  }
+
+  /* Eyebrow used above hero headings */
+  .eyebrow {
+    @apply font-mono text-xs uppercase tracking-[0.3em] text-gold;
+  }
+
+  /* Section title with gold left border */
+  .section-title {
+    @apply border-l-2 border-gold pl-3 font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-faint;
+  }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 font-sans text-xs font-bold
+      uppercase tracking-[0.12em] transition-colors duration-150 outline-none;
+  }
+  .btn-primary {
+    @apply btn notch bg-gold text-ink hover:bg-gold2;
+  }
+  .btn-outline {
+    @apply btn border border-gold/70 text-gold hover:bg-gold hover:text-ink;
+  }
+  .btn-ghost {
+    @apply btn border border-line text-muted hover:border-gold/60 hover:text-bone;
+  }
+
+  /* Inputs */
+  .field {
+    @apply border border-line bg-surface2 px-3.5 py-2.5 text-sm text-bone
+      placeholder:text-faint outline-none transition-colors
+      focus:border-gold focus:bg-surface;
+  }
+
+  /* Chips / tags */
+  .chip {
+    @apply inline-flex items-center gap-1.5 border border-line bg-surface2 px-2.5 py-1
+      font-mono text-[10px] uppercase tracking-wider text-muted;
+  }
+  .chip-active {
+    @apply border-transparent bg-gold text-ink;
+  }
+
+  /* Segmented toggle */
+  .seg {
+    @apply border border-line bg-surface px-3.5 py-2 font-sans text-xs font-bold uppercase
+      tracking-[0.1em] text-muted transition-colors hover:border-gold/50 hover:text-bone;
+  }
+  .seg-active {
+    @apply notch-sm border-transparent bg-gold text-ink hover:bg-gold2 hover:text-ink;
+  }
+
+  /* Marquee ticker */
+  .marquee {
+    @apply flex overflow-hidden whitespace-nowrap;
+  }
+  .marquee-track {
+    @apply flex shrink-0 animate-marquee items-center;
+  }
+
+  /* Item tooltip: style League's in-game description markup (from Data Dragon) */
+  .item-desc stats {
+    @apply mb-1 block text-bone;
+  }
+  .item-desc attention,
+  .item-desc scaleap,
+  .item-desc scalead,
+  .item-desc scalemana {
+    @apply font-mono font-bold text-bone;
+  }
+  .item-desc passive {
+    @apply font-bold text-gold;
+  }
+  .item-desc active {
+    @apply font-bold text-win;
+  }
+  .item-desc keyword,
+  .item-desc raritygeneric,
+  .item-desc raritymythic,
+  .item-desc raritylegendary {
+    @apply text-bone;
+  }
+  .item-desc physicaldamage {
+    color: #f4a259;
+  }
+  .item-desc magicdamage {
+    color: #6db3f2;
+  }
+  .item-desc truedamage {
+    color: #e8e0c0;
+  }
+  .item-desc onhit {
+    @apply text-gold;
+  }
+  .item-desc healing {
+    @apply text-win;
+  }
+  .item-desc status {
+    @apply text-muted;
+  }
+  .item-desc li {
+    @apply ml-3 block list-disc;
+  }
+}
+
+@layer utilities {
+  /* keyboard focus ring (focus-visible only) */
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  [tabindex]:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  /* Skip-to-content link: off-screen until focused. */
+  .skip-link {
+    @apply sr-only;
+  }
+  .skip-link:focus {
+    @apply not-sr-only fixed left-4 top-4 z-[200] border border-gold bg-bg px-4 py-2
+      font-mono text-xs uppercase tracking-[0.15em] text-gold;
+  }
+
+  .stat {
+    @apply font-mono tabular-nums;
+  }
+  /* Hairline gold rule */
+  .rule-gold {
+    background: linear-gradient(90deg, var(--gold), transparent);
+  }
+}
+
+/* respect the os reduce-motion setting */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .marquee-track {
+    animation: none !important;
+  }
+}

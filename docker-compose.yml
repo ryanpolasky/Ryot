@@ -1,0 +1,31 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    environment:
+      RIOT_API_KEY: ${RIOT_API_KEY:?set RIOT_API_KEY in your .env}
+      DEFAULT_REGION: ${DEFAULT_REGION:-na1}
+      PORT: 4000
+      # Allow the browser app (served from :3000) to call the API.
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+    ports:
+      - "4000:4000"
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        # Baked into the browser bundle: must be the URL YOU open the API at.
+        NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-http://localhost:4000}
+    environment:
+      # Used for server-side rendering inside the container network.
+      API_BASE: http://server:4000
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - server
+    restart: unless-stopped

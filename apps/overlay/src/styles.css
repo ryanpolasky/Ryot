@@ -1,0 +1,821 @@
+/* ── RYOT overlay: Porofessor-style distributed HUD ──────────────────────────
+   Four zones: stat panel (top-right), gold scoreboard (right), minimap timers
+   (bottom-left), next-buy (bottom-right). Small, high-contrast, unobtrusive. */
+
+:root {
+  --bg: rgba(12, 11, 14, 0.86);
+  --line: rgba(200, 170, 110, 0.32);
+  --bone: #f4f1e8;
+  --muted: #8a8578;
+  --faint: #5b5750;
+  --gold: #c8aa6e;
+  --blue: #4d8df0;
+  --red: #ff4d4d;
+  --green: #4ec77a;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  font-family: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  color: var(--bone);
+  pointer-events: none;
+  user-select: none;
+}
+
+.mono,
+.sp-v,
+.sp-clock,
+.sp-delta,
+.gold-strip,
+.ln-diff,
+.mm-t,
+.ni-gold {
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.panel {
+  position: absolute;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  /* angular notch: the RYOT signature */
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 9px),
+    calc(100% - 9px) 100%,
+    0 100%
+  );
+  backdrop-filter: blur(2px);
+}
+
+/* ── 1. Stat panel (top-right, DRAGGABLE) ── */
+/* Position/size set by JS from layout engine; CSS is fallback only. */
+.statpanel {
+  padding: 8px 10px 9px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+body.in-game .statpanel {
+  opacity: 1;
+}
+
+.sp-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-bottom: 6px;
+  margin-bottom: 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+.brand {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.brand b {
+  color: var(--gold);
+}
+.sp-clock {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--gold);
+  font-weight: 700;
+}
+.status {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 2px 5px;
+}
+.status.ok {
+  color: #0a0a0b;
+  background: var(--green);
+}
+.status.off {
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sp-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 2.5px 0;
+  font-size: 11px;
+}
+.sp-l {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 9.5px;
+}
+.sp-v {
+  margin-left: auto;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.sp-delta {
+  font-size: 9.5px;
+  font-weight: 700;
+  min-width: 42px;
+  text-align: right;
+}
+.sp-delta.up {
+  color: var(--green);
+}
+.sp-delta.down {
+  color: var(--red);
+}
+
+/* ── 3. Gold-diff scoreboard (centered, shown on Tab) ── */
+/* Position/size set by JS from layout engine. */
+.scoreboard {
+  padding: 7px 9px 6px;
+}
+
+.gold-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+  padding-bottom: 5px;
+  margin-bottom: 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+.gs-blue {
+  color: var(--blue);
+}
+.gs-red {
+  color: var(--red);
+}
+.gs-diff {
+  color: var(--muted);
+  font-size: 11px;
+}
+.gs-diff.ahead {
+  color: var(--green);
+}
+.gs-diff.behind {
+  color: var(--red);
+}
+
+.lane {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 6px;
+  padding: 2.5px 0;
+  font-size: 11px;
+}
+.ln-champ {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.ln-champ.ally {
+  text-align: left;
+  color: var(--blue);
+}
+.ln-champ.enemy {
+  text-align: right;
+  color: var(--red);
+}
+.ln-diff {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--muted);
+  min-width: 50px;
+  text-align: center;
+}
+.ln-diff.ahead {
+  color: var(--green);
+}
+.ln-diff.behind {
+  color: var(--red);
+}
+
+.sb-foot {
+  margin-top: 6px;
+  padding-top: 5px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 8.5px;
+  color: var(--faint);
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.quit {
+  pointer-events: none;
+  opacity: 0;
+  border: none;
+  background: rgba(255, 77, 77, 0.85);
+  color: #fff;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  font-size: 10px;
+  line-height: 1;
+}
+
+/* ── 2. Minimap objective timers (auto-placed over real minimap) ── */
+/* Position/size set by JS from layout engine. */
+.minimap {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+body.in-game .minimap {
+  opacity: 1;
+}
+.mm-cal {
+  position: absolute;
+  inset: 0;
+  border: 1px dashed rgba(200, 170, 110, 0.18);
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 3px 5px;
+  font-size: 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(200, 170, 110, 0.25);
+}
+/* The calibration outline only shows in interactive mode. */
+body:not(.interactive) .mm-cal {
+  border-color: transparent;
+  color: transparent;
+}
+.mm-objs {
+  position: absolute;
+  inset: 0;
+}
+.mm-chip {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 5px 1px 3px;
+  background: rgba(12, 11, 14, 0.88);
+  border: 1px solid var(--line);
+  white-space: nowrap;
+}
+.mm-chip .mm-ic {
+  font-size: 11px;
+  line-height: 1;
+}
+.mm-chip .mm-t {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.mm-chip.up .mm-t {
+  color: var(--green);
+}
+
+/* ── Minor camp chips: grey hourglass by default, expand on Tab ── */
+.mm-chip.minor {
+  padding: 1px 3px;
+}
+/* Hourglass icon (shown by default for minor camps) */
+.mm-hg {
+  font-size: 10px;
+  line-height: 1;
+  filter: saturate(0) brightness(0.6); /* grey */
+}
+/* Minor camp timestamp hidden by default */
+.mm-chip.minor .mm-t.mm-minor {
+  display: none;
+}
+/* When Tab is held (body.tab-held), show timestamp + hide hourglass */
+body.tab-held .mm-chip.minor .mm-t.mm-minor {
+  display: inline;
+}
+body.tab-held .mm-chip.minor .mm-hg {
+  display: none;
+}
+
+/* T-minus 10: timer turns gold to signal imminent spawn */
+.mm-t.imminent {
+  color: var(--gold) !important;
+  text-shadow: 0 0 6px rgba(200, 170, 110, 0.6);
+  animation: pulse-gold 0.8s ease-in-out infinite alternate;
+}
+@keyframes pulse-gold {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Inhib chip styling */
+.mm-chip.inhib {
+  border-color: rgba(255, 77, 77, 0.5);
+}
+.mm-chip.inhib .mm-t {
+  color: var(--red);
+}
+
+/* Gold-diff scoreboard also only shows when Tab is held */
+.scoreboard {
+  opacity: 0 !important;
+  transition: opacity 0.15s;
+}
+body.tab-held.in-game .scoreboard {
+  opacity: 1 !important;
+}
+
+/* ── 4. Next-buy / build (near minimap, DRAGGABLE) ── */
+/* Position/size set by JS from layout engine. */
+.nextbuy {
+  padding: 8px 10px 9px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.nextbuy.show {
+  opacity: 1;
+}
+
+.nb-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.nb-champ {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.nb-role {
+  margin-left: auto;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+}
+
+.nb-alerts:empty {
+  display: none;
+}
+.alert {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 7px;
+  margin-bottom: 4px;
+  letter-spacing: 0.3px;
+}
+.alert.back {
+  color: #0a0a0b;
+  background: var(--gold);
+}
+.alert.spike {
+  color: #0a0a0b;
+  background: var(--green);
+}
+
+.nb-body {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.build-path {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  flex: 1;
+}
+.bi {
+  width: 24px;
+  height: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  opacity: 0.4;
+  overflow: hidden;
+}
+.bi img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.bi .noimg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.06);
+}
+.bi.owned {
+  opacity: 1;
+  border-color: var(--green);
+}
+
+.next-item {
+  flex-shrink: 0;
+}
+.ni-card {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ni-card img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.ni-card.ready {
+  border-color: var(--green);
+  box-shadow: 0 0 8px rgba(78, 199, 122, 0.5);
+}
+.ni-gold {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 0 3px;
+  background: rgba(12, 11, 14, 0.92);
+  color: var(--gold);
+}
+.ni-card.ready .ni-gold {
+  color: var(--green);
+}
+
+/* Interactive mode: panels accept clicks + show controls/calibration. */
+body.interactive .panel {
+  pointer-events: auto;
+  border-color: var(--gold);
+}
+body.interactive .minimap {
+  pointer-events: auto;
+}
+body.interactive .quit {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+/* ── Drag handle (only visible in edit mode) ── */
+.drag-handle {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 16px;
+  cursor: grab;
+  background: linear-gradient(
+    180deg,
+    rgba(200, 170, 110, 0.4) 0%,
+    transparent 100%
+  );
+  z-index: 100;
+}
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* ── Edit mode ── */
+body.edit .drag-handle {
+  display: block;
+}
+body.edit .draggable {
+  border: 2px solid var(--gold) !important;
+  pointer-events: auto !important;
+  opacity: 1 !important;
+}
+/* Show all zones in edit mode for dragging even if no game data */
+body.edit .statpanel,
+body.edit .scoreboard,
+body.edit .minimap,
+body.edit .nextbuy {
+  opacity: 0.7 !important;
+}
+body.edit .draggable {
+  opacity: 1 !important;
+}
+
+.edit-toolbar {
+  display: none;
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg);
+  border: 1px solid var(--gold);
+  padding: 8px 16px;
+  z-index: 9999;
+  pointer-events: auto;
+  align-items: center;
+  gap: 12px;
+  font-family: "Space Mono", ui-monospace, monospace;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 7px),
+    calc(100% - 7px) 100%,
+    0 100%
+  );
+}
+body.edit .edit-toolbar {
+  display: flex;
+}
+.edit-hint {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.3px;
+}
+.edit-btn {
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 4px 12px;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+.edit-btn:hover {
+  background: var(--gold);
+  color: #0a0a0b;
+}
+
+/* ── Calibration (debug) editor ── */
+.hud-ref {
+  display: none;
+  position: absolute;
+  border: 2px dashed var(--muted);
+  pointer-events: none;
+}
+.hud-ref-label {
+  position: absolute;
+  top: 2px;
+  left: 6px;
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+body.calibrating .hud-ref {
+  display: block;
+}
+
+/* In calibration mode every zone is visible and interactive. */
+body.calibrating .statpanel,
+body.calibrating .scoreboard,
+body.calibrating .minimap,
+body.calibrating .nextbuy,
+body.calibrating .hud-ref {
+  opacity: 0.85 !important;
+  pointer-events: auto !important;
+  cursor: move;
+}
+body.calibrating .cal-selected {
+  outline: 2px solid var(--gold) !important;
+  outline-offset: 2px;
+  z-index: 900;
+}
+
+/* Resize handles injected by JS on each zone in calibration mode. */
+.cal-rh {
+  display: none;
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--gold);
+  border: 1px solid #0a0a0b;
+  z-index: 950;
+}
+body.calibrating .cal-rh {
+  display: block;
+}
+.cal-rh.tl {
+  top: -5px;
+  left: -5px;
+  cursor: nwse-resize;
+}
+.cal-rh.tr {
+  top: -5px;
+  right: -5px;
+  cursor: nesw-resize;
+}
+.cal-rh.bl {
+  bottom: -5px;
+  left: -5px;
+  cursor: nesw-resize;
+}
+.cal-rh.br {
+  bottom: -5px;
+  right: -5px;
+  cursor: nwse-resize;
+}
+.cal-rh.tc {
+  top: -5px;
+  left: 50%;
+  margin-left: -5px;
+  cursor: ns-resize;
+}
+.cal-rh.bc {
+  bottom: -5px;
+  left: 50%;
+  margin-left: -5px;
+  cursor: ns-resize;
+}
+.cal-rh.ml {
+  top: 50%;
+  margin-top: -5px;
+  left: -5px;
+  cursor: ew-resize;
+}
+.cal-rh.mr {
+  top: 50%;
+  margin-top: -5px;
+  right: -5px;
+  cursor: ew-resize;
+}
+
+/* Zone label tag in calibration mode */
+.cal-tag {
+  display: none;
+  position: absolute;
+  top: -18px;
+  left: 0;
+  font-size: 9px;
+  font-family: "Space Mono", ui-monospace, monospace;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+body.calibrating .cal-tag {
+  display: block;
+}
+
+/* Inspector panel (top-left, only in calibration mode) */
+.cal-inspector {
+  display: none;
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  width: 260px;
+  background: rgba(12, 11, 14, 0.94);
+  border: 1px solid var(--gold);
+  padding: 10px 12px;
+  z-index: 9999;
+  pointer-events: auto;
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--bone);
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 7px),
+    calc(100% - 7px) 100%,
+    0 100%
+  );
+}
+body.calibrating .cal-inspector {
+  display: block;
+}
+.cal-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 6px;
+}
+.cal-map-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.cal-map-label {
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  margin-right: 2px;
+}
+.cal-map-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--faint);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 3px 0;
+  cursor: pointer;
+}
+.cal-map-btn:hover {
+  color: var(--bone);
+}
+.cal-map-btn.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #1a1408;
+}
+.cal-zone-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--bone);
+  margin-bottom: 8px;
+}
+.cal-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin-bottom: 8px;
+}
+.cal-field {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.cal-field label {
+  font-size: 10px;
+  color: var(--muted);
+  width: 14px;
+  text-align: right;
+}
+.cal-field input {
+  width: 52px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--faint);
+  color: var(--bone);
+  font-family: "Space Mono", ui-monospace, monospace;
+  font-size: 11px;
+  padding: 2px 4px;
+  text-align: right;
+}
+.cal-field input:focus {
+  border-color: var(--gold);
+  outline: none;
+}
+.cal-base {
+  font-size: 9px;
+  color: var(--muted);
+  white-space: pre-wrap;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+/* Calibration toolbar (bottom-center) */
+.cal-toolbar {
+  display: none;
+  position: fixed;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg);
+  border: 1px solid var(--gold);
+  padding: 8px 16px;
+  z-index: 9999;
+  pointer-events: auto;
+  align-items: center;
+  gap: 12px;
+  font-family: "Space Mono", ui-monospace, monospace;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 7px),
+    calc(100% - 7px) 100%,
+    0 100%
+  );
+}
+body.calibrating .cal-toolbar {
+  display: flex;
+}
+.cal-hint {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.3px;
+}

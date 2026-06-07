@@ -1,0 +1,54 @@
+appId: com.ryanpolasky.ryot
+productName: Ryot
+copyright: Copyright © 2025 Ryan Polasky
+
+directories:
+  output: release
+  buildResources: buildResources
+
+# What gets packaged into the app bundle. electron-builder pulls in production
+# dependencies (electron-updater, uiohook-napi) from node_modules automatically.
+files:
+  - dist/**/*
+  - package.json
+  - "!**/*.map"
+
+# Auto-update + release distribution target. electron-updater reads the
+# generated latest.yml / latest-mac.yml from the matching GitHub Release.
+publish:
+  provider: github
+  owner: ryanpolasky
+  repo: ryot
+
+mac:
+  category: public.app-category.utilities
+  icon: buildResources/icon.png
+  # Universal binary = one .dmg that runs on both Apple Silicon and Intel, so
+  # there's a single Mac download. Version-less name keeps the download-page
+  # link stable across releases (github .../releases/latest/download/Ryot.dmg).
+  artifactName: ${productName}.${ext}
+  target:
+    - target: dmg
+      arch: universal
+  # No hardened runtime / notarization configured here; sign+notarize on your
+  # Apple Developer account by setting CSC_LINK / APPLE_ID env vars at build time.
+
+win:
+  icon: buildResources/icon.png
+  target:
+    - target: nsis
+      arch:
+        - x64
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  # Version-less so the download-page link is stable across releases.
+  artifactName: ${productName}-Setup.${ext}
+
+linux:
+  icon: buildResources/icon.png
+  category: Utility
+  target:
+    - AppImage

@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Ryot Settings</title>
+    <link rel="stylesheet" href="./settings.css" />
+  </head>
+  <body>
+    <div class="kicker">Ryot // Desktop</div>
+    <h1><b>RY</b>OT SETTINGS</h1>
+    <div class="rule"></div>
+
+    <label for="ryotUrl">Ryot server URL</label>
+    <input id="ryotUrl" type="text" placeholder="http://localhost:3000" />
+    <div class="hint">
+      The hosted Ryot instance (server + web). No API key needed here.
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="defaultRiotId">Default Riot ID</label>
+        <input id="defaultRiotId" type="text" placeholder="Name#TAG" />
+        <div class="hint">Used when League isn't running.</div>
+      </div>
+      <div>
+        <label for="defaultRegion">Region</label>
+        <select id="defaultRegion"></select>
+      </div>
+    </div>
+
+    <label for="pregameDisplay">Pre-game popup monitor</label>
+    <select id="pregameDisplay"></select>
+    <div class="hint">
+      Where the champ-select screen appears when you enter a game.
+    </div>
+
+    <label class="check"
+      ><input id="pregameEnabled" type="checkbox" /><span
+        >Auto-open pre-game screen in champ select</span
+      ></label
+    >
+    <label class="check"
+      ><input id="autoReveal" type="checkbox" /><span
+        >Auto-reveal the lobby (open live scout) when a game starts</span
+      ></label
+    >
+    <label class="check"
+      ><input id="autoImportRunes" type="checkbox" /><span
+        >Auto-import runes on champion lock-in</span
+      ></label
+    >
+
+    <div class="actions">
+      <span class="saved" id="saved">Saved</span>
+      <button id="cancel">Close</button>
+      <button id="save" class="primary">Save</button>
+    </div>
+
+    <script>
+      const PLATFORMS = [
+        ["na1", "NA"],
+        ["euw1", "EUW"],
+        ["eun1", "EUNE"],
+        ["kr", "KR"],
+        ["br1", "BR"],
+        ["jp1", "JP"],
+        ["la1", "LAN"],
+        ["la2", "LAS"],
+        ["oc1", "OCE"],
+        ["tr1", "TR"],
+        ["ru", "RU"],
+        ["ph2", "PH"],
+        ["sg2", "SG"],
+        ["th2", "TH"],
+        ["tw2", "TW"],
+        ["vn2", "VN"],
+      ];
+
+      const $ = (id) => document.getElementById(id);
+
+      function fillRegions(selected) {
+        $("defaultRegion").innerHTML = PLATFORMS.map(
+          ([v, l]) =>
+            `<option value="${v}"${v === selected ? " selected" : ""}>${l}</option>`,
+        ).join("");
+      }
+
+      async function init() {
+        const s = await window.settingsApi.get();
+        $("ryotUrl").value = s.ryotUrl ?? "";
+        $("defaultRiotId").value = s.defaultRiotId ?? "";
+        fillRegions(s.defaultRegion ?? "na1");
+        $("pregameEnabled").checked = s.pregameEnabled !== false;
+        $("autoReveal").checked = s.autoReveal !== false;
+        $("autoImportRunes").checked = !!s.autoImportRunes;
+
+        const displays = window.settingsApi.getDisplays();
+        $("pregameDisplay").innerHTML = displays
+          .map(
+            (d) =>
+              `<option value="${d.id}"${d.id === s.pregameDisplayId ? " selected" : ""}>${d.label}</option>`,
+          )
+          .join("");
+      }
+
+      $("save").addEventListener("click", async () => {
+        await window.settingsApi.save({
+          ryotUrl: $("ryotUrl").value.trim(),
+          defaultRiotId: $("defaultRiotId").value.trim(),
+          defaultRegion: $("defaultRegion").value,
+          pregameDisplayId: Number($("pregameDisplay").value) || 0,
+          pregameEnabled: $("pregameEnabled").checked,
+          autoReveal: $("autoReveal").checked,
+          autoImportRunes: $("autoImportRunes").checked,
+        });
+        const el = $("saved");
+        el.classList.add("show");
+        setTimeout(() => el.classList.remove("show"), 1500);
+      });
+
+      $("cancel").addEventListener("click", () => window.close());
+
+      init();
+    </script>
+  </body>
+</html>
