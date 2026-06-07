@@ -46,8 +46,8 @@ export interface OverlayZones {
 export type OverlayLayout = Partial<Record<"rift" | "aram", OverlayZones>>;
 
 const DEFAULTS: Settings = {
-  ryotUrl: process.env.RYOT_URL ?? "http://localhost:3000",
-  apiUrl: process.env.RYOT_API_URL ?? "http://localhost:4000",
+  ryotUrl: process.env.RYOT_URL ?? "https://ryot.lol",
+  apiUrl: process.env.RYOT_API_URL ?? "https://api.ryot.lol",
   defaultRiotId: "",
   defaultRegion: "na1",
   pregameDisplayId: 0,

@@ -59,7 +59,7 @@ declare global {
 
 const params = new URLSearchParams(location.search);
 const MOCK = params.get("mock") === "1";
-const API_BASE = params.get("api") || "http://localhost:4000";
+const API_BASE = params.get("api") || "https://api.ryot.lol";
 const DATA_URL = MOCK
   ? "./mock-allgamedata.json"
   : `${LIVE_CLIENT_BASE}/allgamedata`;

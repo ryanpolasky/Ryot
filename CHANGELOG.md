@@ -4,7 +4,7 @@ All notable changes to Ryot are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2026-06-06
+## [1.0.0] - 2026-06-07
 
 First stable release. Ryot is a self-hostable, open-source League of Legends
 companion: OP.GG-style stats, a Porofessor-style live-game scout, champion
