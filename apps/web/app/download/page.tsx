@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { COMING_SOON } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: { absolute: "Download Ryot // Free, No Ads, Open Source" },
@@ -10,7 +11,8 @@ export const metadata: Metadata = {
 // Stable "latest release" asset URLs. GitHub redirects /releases/latest/download/<name>
 // to the newest release, and electron-builder emits version-less artifact names
 // (Ryot.dmg, Ryot-Setup.exe), so these never need updating across releases.
-const RELEASES = "https://github.com/ryanpolasky/ryot/releases";
+const REPO = "https://github.com/ryanpolasky/ryot";
+const RELEASES = `${REPO}/releases`;
 const DOWNLOAD_MAC = `${RELEASES}/latest/download/Ryot.dmg`;
 const DOWNLOAD_WIN = `${RELEASES}/latest/download/Ryot-Setup.exe`;
 
@@ -86,31 +88,48 @@ export default function DownloadPage() {
           hosted by me, built for a friend group.
         </p>
 
-        <div className="mt-8 flex flex-wrap items-center gap-4">
-          <a
-            href={DOWNLOAD_MAC}
-            className="btn-primary inline-flex items-center gap-2 text-sm"
-          >
-            Download for macOS
-          </a>
-          <a
-            href={DOWNLOAD_WIN}
-            className="btn-primary inline-flex items-center gap-2 text-sm"
-          >
-            Download for Windows
-          </a>
-          <a
-            href={`${RELEASES}/latest`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-mono text-[11px] uppercase tracking-widest text-faint underline-offset-4 hover:text-muted hover:underline"
-          >
-            all downloads &amp; release notes
-          </a>
-        </div>
+        {COMING_SOON ? (
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <span className="btn-primary pointer-events-none inline-flex items-center gap-2 text-sm opacity-60">
+              Desktop app: coming soon
+            </span>
+            <a
+              href={REPO}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono text-[11px] uppercase tracking-widest text-faint underline-offset-4 hover:text-muted hover:underline"
+            >
+              star on github to get notified &rarr;
+            </a>
+          </div>
+        ) : (
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <a
+              href={DOWNLOAD_MAC}
+              className="btn-primary inline-flex items-center gap-2 text-sm"
+            >
+              Download for macOS
+            </a>
+            <a
+              href={DOWNLOAD_WIN}
+              className="btn-primary inline-flex items-center gap-2 text-sm"
+            >
+              Download for Windows
+            </a>
+            <a
+              href={`${RELEASES}/latest`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono text-[11px] uppercase tracking-widest text-faint underline-offset-4 hover:text-muted hover:underline"
+            >
+              all downloads &amp; release notes
+            </a>
+          </div>
+        )}
         <p className="mt-3 font-mono text-[11px] text-faint">
-          Free and open source. macOS is a universal build (Apple Silicon +
-          Intel); Windows is a 64-bit installer. Auto-updates once installed.
+          {COMING_SOON
+            ? "The desktop app is in the works and launching soon. The web companion (search, builds, tier lists) is already live."
+            : "Free and open source. macOS is a universal build (Apple Silicon + Intel); Windows is a 64-bit installer. Auto-updates once installed."}
         </p>
       </section>
 
@@ -206,12 +225,20 @@ export default function DownloadPage() {
 
       {/* Footer CTA */}
       <section className="flex flex-wrap items-center gap-5 border-t border-line pt-8">
-        <a href={DOWNLOAD_MAC} className="btn-primary text-sm">
-          Download for macOS
-        </a>
-        <a href={DOWNLOAD_WIN} className="btn-primary text-sm">
-          Download for Windows
-        </a>
+        {COMING_SOON ? (
+          <span className="btn-primary pointer-events-none text-sm opacity-60">
+            Desktop app: coming soon
+          </span>
+        ) : (
+          <>
+            <a href={DOWNLOAD_MAC} className="btn-primary text-sm">
+              Download for macOS
+            </a>
+            <a href={DOWNLOAD_WIN} className="btn-primary text-sm">
+              Download for Windows
+            </a>
+          </>
+        )}
         <a
           href="https://github.com/ryanpolasky/ryot"
           target="_blank"

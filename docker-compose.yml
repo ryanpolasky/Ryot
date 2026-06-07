@@ -7,8 +7,11 @@ services:
       RIOT_API_KEY: ${RIOT_API_KEY:?set RIOT_API_KEY in your .env}
       DEFAULT_REGION: ${DEFAULT_REGION:-na1}
       PORT: 4000
-      # Allow the browser app (served from :3000) to call the API.
+      # Allow the browser app to call the API. In prod set to https://ryot.lol.
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      # Set true when the API sits behind a reverse proxy / Cloudflare so the
+      # rate limiter reads the real client IP from X-Forwarded-For.
+      TRUST_PROXY: ${TRUST_PROXY:-false}
     ports:
       - "4000:4000"
     restart: unless-stopped
@@ -18,8 +21,13 @@ services:
       context: .
       dockerfile: Dockerfile.web
       args:
-        # Baked into the browser bundle: must be the URL YOU open the API at.
+        # Baked into the browser bundle: the URL the browser hits the API at.
+        # In prod set to https://api.ryot.lol.
         NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:-http://localhost:4000}
+        # Public canonical site URL (SEO/OG). In prod set to https://ryot.lol.
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://ryot.lol}
+        # Set NEXT_PUBLIC_COMING_SOON=true in your .env to hide download buttons.
+        NEXT_PUBLIC_COMING_SOON: ${NEXT_PUBLIC_COMING_SOON:-false}
     environment:
       # Used for server-side rendering inside the container network.
       API_BASE: http://server:4000

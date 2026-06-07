@@ -9,6 +9,10 @@ export const SITE_TITLE = "Ryot // League Companion";
 export const SITE_DESCRIPTION =
   "No-ads, no-tracking League of Legends stats, live-game scout, tier lists, champion builds, and a desktop overlay. Open source and privacy-first.";
 
+// when true, the desktop app isn't out yet: download buttons flip to "coming
+// soon" and the download-page copy changes. set NEXT_PUBLIC_COMING_SOON=true.
+export const COMING_SOON = process.env.NEXT_PUBLIC_COMING_SOON === "true";
+
 // champion on the default og share card. must be a canonical data dragon id.
 export const SITE_CHAMPION = "TahmKench";
 
