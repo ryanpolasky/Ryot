@@ -33,6 +33,13 @@ jobs:
           node-version: 22
           cache: pnpm
 
+      # node-gyp 9 (via @electron/rebuild) imports python's distutils, removed in
+      # 3.12. github runners default to 3.12+, so pin 3.11 so the native
+      # uiohook-napi rebuild against electron headers still works.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
