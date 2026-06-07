@@ -50,10 +50,11 @@ jobs:
           # Provided automatically by Actions; lets electron-builder create the
           # release and upload assets. No PAT needed.
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # macOS signing/notarization (optional): add these as repo secrets to
-          # produce signed builds. Unset = unsigned (fine for a friend group).
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # unsigned builds. undefined github secrets interpolate to empty
+          # strings, and electron-builder treats an empty CSC_LINK as a bogus
+          # cert path (fails the dmg step with "not a file"), so we don't pass
+          # them and disable signing-identity discovery instead.
+          # to sign+notarize later: drop this line and add CSC_LINK,
+          # CSC_KEY_PASSWORD, APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, and
+          # APPLE_TEAM_ID as repo secrets passed here.
+          CSC_IDENTITY_AUTO_DISCOVERY: false
