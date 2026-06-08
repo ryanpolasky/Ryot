@@ -102,10 +102,20 @@ export function getMatches(
   region: string,
   puuid: string,
   count = 20,
-  opts?: { start?: number; headers?: Record<string, string> },
+  opts?: {
+    start?: number;
+    queue?: number;
+    type?: string;
+    headers?: Record<string, string>;
+  },
 ): Promise<MatchesResult> {
-  const start = opts?.start ?? 0;
-  const path = `/api/matches/${region}/${enc(puuid)}?start=${start}&count=${count}`;
+  const params = new URLSearchParams({
+    start: String(opts?.start ?? 0),
+    count: String(count),
+  });
+  if (opts?.queue !== undefined) params.set("queue", String(opts.queue));
+  if (opts?.type) params.set("type", opts.type);
+  const path = `/api/matches/${region}/${enc(puuid)}?${params.toString()}`;
   // byok paging sends the key header and must not be cached
   const init: RequestInit = opts?.headers
     ? { headers: opts.headers, cache: "no-store" }

@@ -5,6 +5,7 @@
 // search and the champion search.
 
 import {
+  DDRAGON_BASE,
   type DDragonChampion,
   fetchChampions,
   getLatestVersion,
@@ -84,4 +85,45 @@ export function exactChampion(
   return data.champions.find(
     (c) => norm(c.id) === q || norm(c.name) === q || c.id === aliasId,
   );
+}
+
+// ── Data Dragon versions ────────────────────────────────────────────────────
+// Historical matches reference items/champions from their own patch; rendering
+// them against the latest version 404s for anything since removed. So we map a
+// match's gameVersion to the matching Data Dragon version and use that instead.
+let versionsCache: string[] | null = null;
+let versionsPromise: Promise<string[]> | null = null;
+
+export function loadVersions(): Promise<string[]> {
+  if (versionsCache) return Promise.resolve(versionsCache);
+  if (!versionsPromise) {
+    versionsPromise = fetch(`${DDRAGON_BASE}/api/versions.json`)
+      .then((r) => (r.ok ? (r.json() as Promise<string[]>) : []))
+      .then((v) => {
+        versionsCache = Array.isArray(v) ? v : [];
+        return versionsCache;
+      })
+      .catch(() => {
+        versionsPromise = null;
+        return [];
+      });
+  }
+  return versionsPromise;
+}
+
+/**
+ * The Data Dragon version that best matches a match's gameVersion
+ * ("14.10.596.1234" -> "14.10.1"), falling back to `fallback` (the latest) when
+ * the patch can't be resolved.
+ */
+export function ddragonVersionForGame(
+  gameVersion: string | undefined,
+  versions: string[],
+  fallback: string,
+): string {
+  if (!gameVersion) return fallback;
+  const m = gameVersion.match(/^(\d+)\.(\d+)/);
+  if (!m) return fallback;
+  const prefix = `${m[1]}.${m[2]}.`;
+  return versions.find((v) => v.startsWith(prefix)) ?? fallback;
 }

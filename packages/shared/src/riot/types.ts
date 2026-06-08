@@ -88,6 +88,7 @@ export interface MatchInfo {
   gameEndTimestamp?: number;
   gameMode: string;
   gameType: string;
+  gameVersion?: string;
   queueId: number;
   mapId: number;
   platformId: string;

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { DDragonChampion, MatchDTO } from "@lc/shared";
 import { ApiError, championMaps, getMatches } from "@/lib/api";
 import { byokHeaders, hasByokKey } from "@/lib/byok";
+import { ddragonVersionForGame, loadVersions } from "@/lib/champions";
 import MatchRow from "@/components/MatchRow";
 
 const PAGE_SIZE = 20;
@@ -12,20 +13,17 @@ const PAGE_SIZE = 20;
 type QueueFilter = {
   id: string;
   label: string;
-  test: (queueId: number) => boolean;
+  // match-v5 server-side filter; omitted = all queues. Lets deep-history queues
+  // (e.g. ARAM) be pulled directly instead of waiting for them to page in.
+  fetch?: { queue?: number; type?: string };
 };
 
-// client-side queue grouping; server-side filtering avoided to keep the shared key safe
 const QUEUE_FILTERS: QueueFilter[] = [
-  { id: "all", label: "All", test: () => true },
-  { id: "solo", label: "Solo", test: (q) => q === 420 },
-  { id: "flex", label: "Flex", test: (q) => q === 440 },
-  {
-    id: "normal",
-    label: "Normal",
-    test: (q) => q === 400 || q === 430 || q === 490,
-  },
-  { id: "aram", label: "ARAM", test: (q) => q === 450 },
+  { id: "all", label: "All" },
+  { id: "solo", label: "Solo", fetch: { queue: 420 } },
+  { id: "flex", label: "Flex", fetch: { queue: 440 } },
+  { id: "normal", label: "Normal", fetch: { type: "normal" } },
+  { id: "aram", label: "ARAM", fetch: { queue: 450 } },
 ];
 
 export default function MatchHistory({
@@ -56,15 +54,15 @@ export default function MatchHistory({
   const [byok, setByok] = useState(false);
   useEffect(() => setByok(hasByokKey()), []);
 
-  const { byKey } = useMemo(() => championMaps(champions), [champions]);
+  // Data Dragon version list, so each row can render with its own patch's icons.
+  const [versions, setVersions] = useState<string[]>([]);
+  useEffect(() => {
+    loadVersions()
+      .then(setVersions)
+      .catch(() => {});
+  }, []);
 
-  const queueCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const f of QUEUE_FILTERS) {
-      counts[f.id] = matches.filter((m) => f.test(m.info.queueId)).length;
-    }
-    return counts;
-  }, [matches]);
+  const { byKey } = useMemo(() => championMaps(champions), [champions]);
 
   const champOptions = useMemo(() => {
     const counts = new Map<string, number>();
@@ -77,35 +75,56 @@ export default function MatchHistory({
   }, [matches, puuid]);
 
   const visible = useMemo(() => {
-    const f = QUEUE_FILTERS.find((x) => x.id === queue) ?? QUEUE_FILTERS[0];
+    if (!champ) return matches;
     return matches.filter((m) => {
-      if (!f.test(m.info.queueId)) return false;
-      if (champ) {
-        const me = m.info.participants.find((p) => p.puuid === puuid);
-        if (!me || me.championName !== champ) return false;
-      }
-      return true;
+      const me = m.info.participants.find((p) => p.puuid === puuid);
+      return me?.championName === champ;
     });
-  }, [matches, queue, champ, puuid]);
+  }, [matches, champ, puuid]);
 
-  async function loadMore() {
+  // Fetch a page for the active queue. Switching queues replaces the list;
+  // "Load more" appends. Queue filtering is server-side (match-v5 queue/type),
+  // so deep-history queues like ARAM load directly.
+  async function fetchPage(filterId: string, replace: boolean) {
+    const f = QUEUE_FILTERS.find((x) => x.id === filterId) ?? QUEUE_FILTERS[0];
     setLoading(true);
     setError(null);
     try {
       const res = await getMatches(region, puuid, PAGE_SIZE, {
-        start: matches.length,
+        start: replace ? 0 : matches.length,
+        queue: f.fetch?.queue,
+        type: f.fetch?.type,
         headers: byokHeaders(),
       });
-      const seen = new Set(matches.map((m) => m.metadata.matchId));
-      const next = res.matches.filter((m) => !seen.has(m.metadata.matchId));
-      setMatches((prev) => [...prev, ...next]);
-      if (res.matches.length < PAGE_SIZE) setDone(true);
+      setMatches((prev) => {
+        const base = replace ? [] : prev;
+        const seen = new Set(base.map((m) => m.metadata.matchId));
+        return [
+          ...base,
+          ...res.matches.filter((m) => !seen.has(m.metadata.matchId)),
+        ];
+      });
+      setDone(res.matches.length < PAGE_SIZE);
     } catch (e) {
-      setError(
-        e instanceof ApiError ? e.message : "Couldn't load more matches.",
-      );
+      setError(e instanceof ApiError ? e.message : "Couldn't load matches.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  function selectQueue(id: string) {
+    if (id === queue) return;
+    setQueue(id);
+    setChamp("");
+    setError(null);
+    if (id === "all") {
+      // Restore the server-rendered recent list without another request.
+      setMatches(initial);
+      setDone(initial.length < PAGE_SIZE);
+    } else {
+      setMatches([]);
+      setDone(false);
+      fetchPage(id, true);
     }
   }
 
@@ -133,20 +152,15 @@ export default function MatchHistory({
         <h2 className="kicker">Recent Matches</h2>
 
         <div className="flex flex-wrap items-center gap-1.5">
-          {QUEUE_FILTERS.filter(
-            (f) => f.id === "all" || queueCounts[f.id] > 0,
-          ).map((f) => (
+          {QUEUE_FILTERS.map((f) => (
             <button
               key={f.id}
               type="button"
-              onClick={() => setQueue(f.id)}
+              onClick={() => selectQueue(f.id)}
               aria-pressed={queue === f.id}
               className={queue === f.id ? "seg seg-active" : "seg"}
             >
               {f.label}
-              <span className="ml-1.5 font-mono opacity-50">
-                {queueCounts[f.id]}
-              </span>
             </button>
           ))}
         </div>
@@ -168,9 +182,15 @@ export default function MatchHistory({
         )}
       </div>
 
-      {visible.length === 0 ? (
+      {loading && matches.length === 0 ? (
+        <div className="space-y-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="skeleton h-[84px] w-full" />
+          ))}
+        </div>
+      ) : visible.length === 0 ? (
         <div className="card p-6 text-center text-sm text-muted">
-          No games match this filter.
+          No games found for this filter.
         </div>
       ) : (
         <div className="space-y-2">
@@ -179,7 +199,11 @@ export default function MatchHistory({
               key={m.metadata.matchId}
               match={m}
               focusPuuid={puuid}
-              version={version}
+              version={ddragonVersionForGame(
+                m.info.gameVersion,
+                versions,
+                version,
+              )}
               byKey={byKey}
               region={region}
               name={name}
@@ -196,8 +220,12 @@ export default function MatchHistory({
       )}
 
       <div className="mt-4 flex flex-col items-center gap-2">
-        {!done && (
-          <button onClick={loadMore} disabled={loading} className="btn-outline">
+        {!done && visible.length > 0 && (
+          <button
+            onClick={() => fetchPage(queue, false)}
+            disabled={loading}
+            className="btn-outline"
+          >
             {loading ? "Loading\u2026" : "Load more"}
           </button>
         )}
@@ -212,7 +240,7 @@ export default function MatchHistory({
             to page faster
           </p>
         )}
-        {done && matches.length > PAGE_SIZE && (
+        {done && matches.length > 0 && (
           <p className="font-mono text-[10px] uppercase tracking-widest text-faint">
             End of match history
           </p>

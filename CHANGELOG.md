@@ -4,6 +4,25 @@ All notable changes to Ryot are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-06-07
+
+Match-history fixes and search polish.
+
+### Fixed
+
+- Recent ARAM and other off-meta games no longer go missing from match history.
+  The queue filters (Solo, Flex, Normal, ARAM) now query Riot directly and pull
+  those games on demand instead of only filtering the most recent page.
+- Match-history rows now use fixed, aligned columns, so KDA, items and teams
+  stay in the same place as you scroll.
+- Item and champion icons on older matches load again: each match renders with
+  its own patch's Data Dragon assets, so items removed since then no longer show
+  as blank squares.
+
+### Changed
+
+- The home search no longer opens its suggestion list until you start typing.
+
 ## [1.0.1] - 2026-06-07
 
 Polish pass plus several new web features.

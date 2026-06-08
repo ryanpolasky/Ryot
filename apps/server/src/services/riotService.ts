@@ -190,10 +190,16 @@ export async function getMatches(
   start: number,
   count: number,
   byokKey?: string,
+  filter?: { queue?: number; type?: string },
 ): Promise<MatchesResult> {
   try {
     const ids = await limiter.schedule(() =>
-      riot(byokKey).getMatchIdsByPuuid(platform, puuid, { start, count }),
+      riot(byokKey).getMatchIdsByPuuid(platform, puuid, {
+        start,
+        count,
+        queue: filter?.queue,
+        type: filter?.type,
+      }),
     );
     const matches = await Promise.all(
       ids.map((id) =>

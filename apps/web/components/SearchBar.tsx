@@ -99,7 +99,7 @@ export default function SearchBar({
 
   useEffect(() => setActive(0), [query]);
 
-  const showList = open && suggestions.length > 0;
+  const showList = open && query.trim().length > 0 && suggestions.length > 0;
 
   function goSummoner(
     r: string,

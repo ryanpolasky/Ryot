@@ -21,9 +21,31 @@ const TAG_COLOR: Record<string, string> = {
 
 const ENTRIES: Entry[] = [
   {
-    version: "v1.0.1",
+    version: "v1.0.2",
     date: "June 2026",
     tag: "Latest",
+    changes: [
+      {
+        type: "Fixed",
+        text: "Recent ARAM and other off-meta games no longer go missing: the queue filters (Solo, Flex, Normal, ARAM) now query Riot directly and pull those games on demand.",
+      },
+      {
+        type: "Fixed",
+        text: "Match-history rows now use fixed, aligned columns, so KDA, items and teams stay put as you scroll.",
+      },
+      {
+        type: "Fixed",
+        text: "Item and champion icons on older matches load again, each renders with its own patch's assets, so removed items no longer show as blank squares.",
+      },
+      {
+        type: "Improved",
+        text: "The home search no longer opens its suggestion list until you start typing.",
+      },
+    ],
+  },
+  {
+    version: "v1.0.1",
+    date: "June 2026",
     changes: [
       {
         type: "New",

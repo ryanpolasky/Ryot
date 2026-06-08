@@ -282,7 +282,12 @@ app.get<{ Params: { region: string; name: string; tag: string } }>(
 
 app.get<{
   Params: { region: string; puuid: string };
-  Querystring: { start?: string; count?: string };
+  Querystring: {
+    start?: string;
+    count?: string;
+    queue?: string;
+    type?: string;
+  };
 }>("/api/matches/:region/:puuid", async (req, reply) => {
   const { region, puuid } = req.params;
   if (!isPlatform(region)) return badRegion(reply);
@@ -294,8 +299,19 @@ app.get<{
     maxCount,
     Math.max(1, Number(req.query.count ?? 10) || 10),
   );
+  // Optional server-side queue/type filter (match-v5), so deep-history queues
+  // like ARAM can be pulled directly. `type` is allow-listed to Riot's values.
+  const queueId = Number(req.query.queue);
+  const allowedTypes = new Set(["ranked", "normal", "tourney", "tutorial"]);
+  const filter = {
+    queue: Number.isFinite(queueId) && queueId > 0 ? queueId : undefined,
+    type:
+      req.query.type && allowedTypes.has(req.query.type)
+        ? req.query.type
+        : undefined,
+  };
   try {
-    return await getMatches(region, puuid, start, count, key);
+    return await getMatches(region, puuid, start, count, key, filter);
   } catch (err) {
     return handle(reply, err);
   }

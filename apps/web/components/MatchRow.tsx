@@ -120,7 +120,7 @@ export default function MatchRow({
         </div>
       </div>
 
-      <div className="flex min-w-[8rem] flex-col justify-center">
+      <div className="flex w-36 shrink-0 flex-col justify-center">
         <div className="stat text-lg font-bold text-bone">
           {me.kills} <span className="text-faint">/</span>{" "}
           <span className="text-loss">{me.deaths}</span>{" "}
@@ -152,7 +152,7 @@ export default function MatchRow({
         )}
       </div>
 
-      <div className="flex w-full items-center gap-1 sm:ml-2 sm:w-auto">
+      <div className="flex w-full shrink-0 items-center gap-1 sm:ml-2 sm:w-auto">
         {items.map((id, i) => {
           const url = ddragonImg.item(version, id);
           return url ? (
