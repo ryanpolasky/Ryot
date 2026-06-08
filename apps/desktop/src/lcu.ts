@@ -179,6 +179,39 @@ export async function getCurrentSummoner(): Promise<CurrentSummoner | null> {
   }
 }
 
+/**
+ * Recent games from the League Client's local match history. Unlike Riot's
+ * public match-v5 API, the client's history includes event / RGM modes (ARAM
+ * Mayhem, Brawl, ...) that match-v5 never exposes. Returns the raw LCU games
+ * (legacy match-v4 shape); the web transforms them into the match-v5 shape it
+ * renders. Empty array if the client is down or history is unavailable.
+ */
+export async function getRecentMatches(count = 20): Promise<unknown[]> {
+  const creds = readCredentials();
+  if (!creds) return [];
+  try {
+    const summoner = await getCurrentSummoner();
+    const puuid = summoner?.puuid;
+    if (!puuid) return [];
+    // endIndex is inclusive; clients cap the window so we keep it modest.
+    const endIndex = Math.max(0, Math.min(count, 50) - 1);
+    const { status, data } = await lcuRequest<{
+      games?: { games?: unknown[] };
+    }>(
+      creds,
+      "GET",
+      `/lol-match-history/v1/products/lol/${encodeURIComponent(
+        puuid,
+      )}/matches?begIndex=0&endIndex=${endIndex}`,
+    );
+    if (status !== 200) return [];
+    const games = data?.games?.games;
+    return Array.isArray(games) ? games : [];
+  } catch {
+    return [];
+  }
+}
+
 /** The client's region code (e.g. "NA"), or null. */
 export async function getRegion(): Promise<string | null> {
   const creds = readCredentials();

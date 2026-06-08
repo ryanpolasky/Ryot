@@ -4,9 +4,8 @@ import {
   ddragonImg,
   type DDragonChampion,
   type DDragonSkin,
-  fetchChampionSkins,
 } from "@lc/shared";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getChampions } from "@/lib/api";
 import { onIconError } from "@/lib/img";
 import {
@@ -15,6 +14,7 @@ import {
   setTheme,
   type ChampionTheme,
 } from "@/lib/theme";
+import MarqueeText from "@/components/MarqueeText";
 
 export default function ChampionThemePicker() {
   const [champions, setChampions] = useState<DDragonChampion[]>([]);
@@ -22,6 +22,11 @@ export default function ChampionThemePicker() {
   const [query, setQuery] = useState("");
   const [active, setActive] = useState<ChampionTheme | null>(null);
   const [skins, setSkins] = useState<DDragonSkin[]>([]);
+  // The champion the skin strip currently represents (set synchronously on pick
+  // so a previous champ's shared skin can't flash in the new champ's slot).
+  const [skinChamp, setSkinChamp] = useState<DDragonChampion | null>(null);
+  const [skinsLoading, setSkinsLoading] = useState(false);
+  const skinReqId = useRef(0);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,15 +40,40 @@ export default function ChampionThemePicker() {
       .catch(() => setError("Couldn't load the champion list. Try reloading."));
   }, []);
 
+  // Race-safe skin loader: clears the strip immediately (so a previous champ's
+  // shared skin can't flash in the new slot), shows a loading state, and ignores
+  // responses from a superseded pick.
+  const loadSkins = useCallback(
+    async (c: DDragonChampion) => {
+      if (!version) return;
+      const reqId = ++skinReqId.current;
+      setSkinChamp(c);
+      setSkins([]);
+      setSkinsLoading(true);
+      try {
+        // Server validates splashes and drops splash-less legacy/chroma entries.
+        const res = await fetch(`/api/skins/${encodeURIComponent(c.id)}`);
+        const data = res.ok
+          ? ((await res.json()) as { skins: DDragonSkin[] })
+          : { skins: [] };
+        if (reqId === skinReqId.current) setSkins(data.skins ?? []);
+      } catch {
+        if (reqId === skinReqId.current) setSkins([]);
+      } finally {
+        if (reqId === skinReqId.current) setSkinsLoading(false);
+      }
+    },
+    [version],
+  );
+
   // Once the version is known, load the active champion's skins so the skin
   // strip is present on reload, not only after a fresh pick.
   useEffect(() => {
     const t = getTheme();
     if (!version || !t) return;
-    fetchChampionSkins(version, t.id)
-      .then(setSkins)
-      .catch(() => setSkins([]));
-  }, [version]);
+    const c = champions.find((x) => x.id === t.id);
+    if (c) loadSkins(c);
+  }, [version, champions, loadSkins]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -56,15 +86,6 @@ export default function ChampionThemePicker() {
   const activeChamp = active
     ? champions.find((c) => c.id === active.id)
     : undefined;
-
-  async function loadSkins(id: string) {
-    if (!version) return;
-    try {
-      setSkins(await fetchChampionSkins(version, id));
-    } catch {
-      setSkins([]);
-    }
-  }
 
   async function applyTheme(
     c: DDragonChampion,
@@ -104,13 +125,14 @@ export default function ChampionThemePicker() {
   // Picking a champion themes with its base skin and reveals its other skins.
   function pick(c: DDragonChampion) {
     applyTheme(c, 0);
-    loadSkins(c.id);
+    loadSkins(c);
   }
 
   function reset() {
     clearTheme();
     setActive(null);
     setSkins([]);
+    setSkinChamp(null);
   }
 
   // Skin label without the redundant champion name ("PROJECT: Yasuo" -> "PROJECT:").
@@ -166,48 +188,59 @@ export default function ChampionThemePicker() {
         </div>
       )}
 
-      {active && activeChamp && skins.length > 1 && (
+      {skinChamp && (skinsLoading || skins.length > 1) && (
         <div className="mt-4">
           <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-faint">
             Skin
           </p>
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {skins.map((s) => {
-              const isActiveSkin = (active.skinNum ?? 0) === s.num;
-              return (
-                <button
-                  key={s.num}
-                  type="button"
-                  onClick={() =>
-                    applyTheme(
-                      activeChamp,
-                      s.num,
-                      s.num === 0 ? undefined : s.name,
-                    )
-                  }
-                  disabled={loadingId !== null}
-                  aria-pressed={isActiveSkin}
-                  title={skinLabel(s.name, activeChamp.name)}
-                  className={`relative shrink-0 overflow-hidden border transition-colors disabled:opacity-60 ${
-                    isActiveSkin
-                      ? "border-gold"
-                      : "border-line hover:border-gold/60"
-                  }`}
-                >
-                  <img
-                    src={ddragonImg.champLoading(activeChamp.id, s.num)}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    onError={onIconError}
-                    className="h-24 w-[68px] object-cover object-top"
+            {skinsLoading
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    aria-hidden
+                    className="skeleton h-24 w-[68px] shrink-0"
                   />
-                  <span className="absolute inset-x-0 bottom-0 truncate bg-black/75 px-1 py-0.5 text-center font-mono text-[9px] uppercase tracking-wide text-bone">
-                    {skinLabel(s.name, activeChamp.name)}
-                  </span>
-                </button>
-              );
-            })}
+                ))
+              : skins.map((s) => {
+                  const isActiveSkin =
+                    active?.id === skinChamp.id &&
+                    (active.skinNum ?? 0) === s.num;
+                  return (
+                    <button
+                      key={`${skinChamp.id}-${s.num}`}
+                      type="button"
+                      onClick={() =>
+                        applyTheme(
+                          skinChamp,
+                          s.num,
+                          s.num === 0 ? undefined : s.name,
+                        )
+                      }
+                      disabled={loadingId !== null}
+                      aria-pressed={isActiveSkin}
+                      title={skinLabel(s.name, skinChamp.name)}
+                      className={`group relative shrink-0 overflow-hidden border transition-colors disabled:opacity-60 ${
+                        isActiveSkin
+                          ? "border-gold"
+                          : "border-line hover:border-gold/60"
+                      }`}
+                    >
+                      <img
+                        src={ddragonImg.champLoading(skinChamp.id, s.num)}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        onError={onIconError}
+                        className="h-24 w-[68px] object-cover object-top"
+                      />
+                      <MarqueeText
+                        text={skinLabel(s.name, skinChamp.name)}
+                        className="absolute inset-x-0 bottom-0 bg-black/75 px-1 py-0.5 font-mono text-[9px] uppercase tracking-wide text-bone"
+                      />
+                    </button>
+                  );
+                })}
           </div>
         </div>
       )}

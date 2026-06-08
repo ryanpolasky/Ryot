@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import "@/lib/desktop"; // window.ryot bridge typing
 
 const LINKS: { href: string; label: string }[] = [
   { href: "/", label: "Search" },
@@ -18,9 +19,18 @@ const LINKS: { href: string; label: string }[] = [
 export default function MobileNav() {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   const pathname = usePathname();
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+    setIsDesktop(Boolean(window.ryot?.isDesktop));
+  }, []);
+
+  // Hide the Download link inside the desktop app (you already have it).
+  const links = isDesktop
+    ? LINKS.filter((l) => l.href !== "/download")
+    : LINKS;
 
   // Close the menu whenever the route changes (after a link tap).
   useEffect(() => {
@@ -83,7 +93,7 @@ export default function MobileNav() {
         <>
           <nav className="absolute left-0 right-0 top-full z-50 border-b border-line bg-bg shadow-2xl shadow-black/60">
             <div className="mx-auto flex max-w-6xl flex-col px-5 py-2 font-mono text-sm uppercase tracking-[0.15em]">
-              {LINKS.map((l) => {
+              {links.map((l) => {
                 const active =
                   l.href === "/"
                     ? pathname === "/"

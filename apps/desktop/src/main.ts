@@ -24,6 +24,7 @@ import {
   getCurrentSummoner,
   getChampSelectSession,
   getGameflowPhase,
+  getRecentMatches,
   getRegion,
   importRunes,
   importSpells,
@@ -454,6 +455,10 @@ app.whenReady().then(async () => {
     if (!s) return null;
     const region = (await getRegion()) ?? settings.defaultRegion;
     return { ...s, platform: regionToPlatform(region) };
+  });
+  ipcMain.handle("ryot:getLcuMatches", async (e, count?: number) => {
+    if (!verifySender(e)) return [];
+    return getRecentMatches(typeof count === "number" ? count : 20);
   });
   ipcMain.handle("ryot:importRunes", async (e, payload: RuneImportPayload) => {
     if (!verifySender(e)) throw new Error("Unauthorized IPC");

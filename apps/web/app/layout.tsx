@@ -4,6 +4,7 @@ import { Anton, Space_Grotesk, Space_Mono } from "next/font/google";
 import Link from "next/link";
 import MobileNav from "@/components/MobileNav";
 import DesktopSelfSync from "@/components/DesktopSelfSync";
+import DesktopChrome from "@/components/DesktopChrome";
 import {
   SITE_URL,
   SITE_NAME,
@@ -109,6 +110,13 @@ export default function RootLayout({
             __html: `(function(){try{var s=localStorage.getItem('ryot.theme');if(!s)return;var t=JSON.parse(s);var r=document.documentElement;if(t.accent)r.style.setProperty('--gold-rgb',t.accent);if(t.accent2)r.style.setProperty('--gold-2-rgb',t.accent2);if(t.splash)r.style.setProperty('--champion-splash','url("'+t.splash+'")');if(t.id)r.setAttribute('data-champion-theme',t.id);var m=document.querySelector('meta[name="theme-color"]');if(m&&t.accent)m.setAttribute('content','rgb('+t.accent.split(' ').join(',')+')');}catch(e){}})();`,
           }}
         />
+        {/* desktop app: flag <html> before paint so web-only chrome (e.g. the
+            Download link) hides without a flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{if(window.ryot&&window.ryot.isDesktop)document.documentElement.setAttribute('data-desktop','1');}catch(e){}})();`,
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd()) }}
@@ -117,6 +125,7 @@ export default function RootLayout({
           Skip to content
         </a>
         <DesktopSelfSync />
+        <DesktopChrome />
         {/* Ticker */}
         <div className="marquee border-b border-line bg-surface/60 py-1.5 text-[10px] uppercase tracking-[0.25em] text-faint">
           {[0, 1].map((dup) => (
@@ -167,7 +176,7 @@ export default function RootLayout({
                 </Link>
                 <Link
                   href="/download"
-                  className="px-3 py-2 transition-colors hover:text-gold"
+                  className="desktop-hide px-3 py-2 transition-colors hover:text-gold"
                 >
                   Download
                 </Link>
@@ -233,7 +242,7 @@ export default function RootLayout({
             </Link>
             <Link
               href="/download"
-              className="transition-colors hover:text-bone"
+              className="desktop-hide transition-colors hover:text-bone"
             >
               Download
             </Link>

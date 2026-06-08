@@ -310,6 +310,38 @@
   .rule-gold {
     background: linear-gradient(90deg, var(--gold), transparent);
   }
+
+  /* Web-only chrome (e.g. the Download link) hidden inside the desktop app,
+     which sets <html data-desktop> (see DesktopChrome). */
+  html[data-desktop] .desktop-hide {
+    display: none !important;
+  }
+
+  /* Overflowing text that scrolls (marquee) on hover instead of truncating, so
+     long names stay readable without widening their container. Triggers on
+     hovering an ancestor `.group` (row/tile) or the text itself; the MarqueeText
+     component sets the shift distance + duration only when text overflows. */
+  .marquee-fit {
+    @apply block overflow-hidden whitespace-nowrap;
+  }
+  .marquee-fit__inner {
+    @apply inline-block;
+    will-change: transform;
+  }
+  .group:hover .marquee-fit__inner[data-overflow="true"],
+  .marquee-fit:hover .marquee-fit__inner[data-overflow="true"] {
+    animation: marquee-fit var(--marquee-fit-duration, 3s) linear 0.2s infinite
+      alternate;
+  }
+}
+
+@keyframes marquee-fit {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(var(--marquee-fit-shift, 0));
+  }
 }
 
 /* respect the os reduce-motion setting */
@@ -322,7 +354,8 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  .marquee-track {
+  .marquee-track,
+  .marquee-fit__inner {
     animation: none !important;
   }
 }

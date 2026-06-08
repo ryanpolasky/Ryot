@@ -7,6 +7,8 @@ import { ApiError, championMaps, getMatches } from "@/lib/api";
 import { byokHeaders, hasByokKey } from "@/lib/byok";
 import { ddragonVersionForGame, loadVersions } from "@/lib/champions";
 import MatchRow from "@/components/MatchRow";
+import { lcuGamesToMatches, mergeRecentMatches } from "@/lib/lcuMatches";
+import "@/lib/desktop"; // window.ryot bridge typing
 
 const PAGE_SIZE = 20;
 
@@ -54,6 +56,10 @@ export default function MatchHistory({
   const [byok, setByok] = useState(false);
   useEffect(() => setByok(hasByokKey()), []);
 
+  // Desktop only: recent games pulled from the local League Client, which
+  // includes event/RGM modes (ARAM Mayhem, Brawl) that match-v5 never returns.
+  const [lcu, setLcu] = useState<MatchDTO[]>([]);
+
   // Data Dragon version list, so each row can render with its own patch's icons.
   const [versions, setVersions] = useState<string[]>([]);
   useEffect(() => {
@@ -64,23 +70,68 @@ export default function MatchHistory({
 
   const { byKey } = useMemo(() => championMaps(champions), [champions]);
 
+  // Pull the signed-in user's client history (own profile only) and convert it
+  // to the match-v5 shape. No-op in a normal browser or on someone else's page.
+  useEffect(() => {
+    const bridge = window.ryot;
+    if (
+      !bridge?.isDesktop ||
+      !bridge.getLcuMatches ||
+      !bridge.getCurrentSummoner
+    )
+      return;
+    const getSelf = bridge.getCurrentSummoner;
+    const getClientMatches = bridge.getLcuMatches;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const me = await getSelf();
+        if (cancelled || !me?.puuid || me.puuid !== puuid) return;
+        const games = await getClientMatches(PAGE_SIZE);
+        if (cancelled || !Array.isArray(games) || games.length === 0) return;
+        setLcu(lcuGamesToMatches(games, byKey));
+      } catch {
+        /* client down / private history: silently skip */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [puuid, byKey]);
+
+  // On the "All" view, pin client-only games on top of the server list.
+  const display = useMemo(
+    () =>
+      queue === "all" && lcu.length > 0
+        ? mergeRecentMatches(lcu, matches)
+        : matches,
+    [queue, lcu, matches],
+  );
+
+  // matchIds in the server (match-v5) list, so we can flag client-only games
+  // (event/RGM modes) that have no match-v5 breakdown.
+  const serverIds = useMemo(
+    () => new Set(matches.map((m) => m.metadata.matchId)),
+    [matches],
+  );
+
   const champOptions = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const m of matches) {
+    for (const m of display) {
       const me = m.info.participants.find((p) => p.puuid === puuid);
-      if (me)
+      if (me?.championName)
         counts.set(me.championName, (counts.get(me.championName) ?? 0) + 1);
     }
     return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([n]) => n);
-  }, [matches, puuid]);
+  }, [display, puuid]);
 
   const visible = useMemo(() => {
-    if (!champ) return matches;
-    return matches.filter((m) => {
+    if (!champ) return display;
+    return display.filter((m) => {
       const me = m.info.participants.find((p) => p.puuid === puuid);
       return me?.championName === champ;
     });
-  }, [matches, champ, puuid]);
+  }, [display, champ, puuid]);
 
   // Fetch a page for the active queue. Switching queues replaces the list;
   // "Load more" appends. Queue filtering is server-side (match-v5 queue/type),
@@ -128,7 +179,7 @@ export default function MatchHistory({
     }
   }
 
-  if (initial.length === 0) {
+  if (initial.length === 0 && lcu.length === 0) {
     return (
       <div>
         <h2 className="kicker mb-3">Recent Matches</h2>
@@ -208,6 +259,7 @@ export default function MatchHistory({
               region={region}
               name={name}
               tag={tag}
+              local={!serverIds.has(m.metadata.matchId)}
             />
           ))}
         </div>
@@ -240,7 +292,7 @@ export default function MatchHistory({
             to page faster
           </p>
         )}
-        {done && matches.length > 0 && (
+        {done && display.length > 0 && (
           <p className="font-mono text-[10px] uppercase tracking-widest text-faint">
             End of match history
           </p>

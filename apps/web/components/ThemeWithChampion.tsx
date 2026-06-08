@@ -1,10 +1,11 @@
 "use client";
 
-import { type DDragonSkin, ddragonImg, fetchChampionSkins } from "@lc/shared";
+import { type DDragonSkin, ddragonImg } from "@lc/shared";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { onIconError } from "@/lib/img";
 import { clearTheme, getTheme, setTheme } from "@/lib/theme";
+import MarqueeText from "@/components/MarqueeText";
 
 // "Theme site" control: a dropdown of Base + this champion's skins. Picking one
 // recolors Ryot and sets that skin's splash as the backdrop. The menu is
@@ -12,14 +13,12 @@ import { clearTheme, getTheme, setTheme } from "@/lib/theme";
 export default function ThemeWithChampion({
   id,
   name,
-  version,
   accent,
   accent2,
   splash,
 }: {
   id: string;
   name: string;
-  version: string;
   accent: string;
   accent2: string;
   splash: string;
@@ -40,13 +39,23 @@ export default function ThemeWithChampion({
     setActiveSkin(t?.id === id ? (t.skinNum ?? 0) : null);
   }, [id]);
 
-  // Lazy-load the skin list the first time the menu opens.
+  // Lazy-load the skin list the first time the menu opens. Splash-less legacy
+  // entries are filtered out server-side (see /api/skins).
   useEffect(() => {
-    if (!open || skins.length > 0 || !version) return;
-    fetchChampionSkins(version, id)
-      .then(setSkins)
-      .catch(() => setSkins([]));
-  }, [open, skins.length, version, id]);
+    if (!open || skins.length > 0) return;
+    let cancelled = false;
+    fetch(`/api/skins/${encodeURIComponent(id)}`)
+      .then((r) => (r.ok ? r.json() : { skins: [] }))
+      .then((d: { skins: DDragonSkin[] }) => {
+        if (!cancelled) setSkins(d.skins ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setSkins([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, skins.length, id]);
 
   // Dismiss on outside click, Escape, page scroll, or resize. The menu is
   // fixed-positioned, so an *ancestor* scroll would detach it (close it), but a
@@ -183,7 +192,7 @@ export default function ThemeWithChampion({
                   aria-selected={selected}
                   disabled={busy}
                   onClick={() => themeSkin(s.num, s.name)}
-                  className={`flex w-full items-center gap-2.5 px-2.5 py-1.5 text-left transition-colors disabled:opacity-60 ${
+                  className={`group flex w-full items-center gap-2.5 px-2.5 py-1.5 text-left transition-colors disabled:opacity-60 ${
                     selected
                       ? "bg-gold/15 text-bone"
                       : "text-muted hover:text-bone"
@@ -196,7 +205,7 @@ export default function ThemeWithChampion({
                     onError={onIconError}
                     className="h-9 w-[26px] shrink-0 border border-line object-cover object-top"
                   />
-                  <span className="truncate text-xs">{s.name}</span>
+                  <MarqueeText text={s.name} className="min-w-0 flex-1 text-xs" />
                 </button>
               );
             })}

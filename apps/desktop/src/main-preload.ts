@@ -15,6 +15,10 @@ contextBridge.exposeInMainWorld("ryot", {
     platform: string;
     puuid?: string;
   } | null> => ipcRenderer.invoke("ryot:getCurrentSummoner"),
+  // Raw League Client match history (legacy match-v4 shape); the web normalizes
+  // it. Surfaces event/RGM games match-v5 never exposes.
+  getLcuMatches: (count?: number): Promise<unknown[]> =>
+    ipcRenderer.invoke("ryot:getLcuMatches", count),
   importRunes: (payload: {
     name: string;
     primaryStyleId: number;

@@ -4,6 +4,28 @@ All notable changes to Ryot are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2026-06-08
+
+Desktop match history from the League client, plus theme polish.
+
+### Added
+
+- Desktop: recent games are now read from your League client, so event / RGM
+  modes (ARAM: Mayhem, Brawl) that Riot's public match API never exposes finally
+  appear in your match history.
+
+### Changed
+
+- Desktop: the Download page and its nav links are hidden inside the app.
+- Long skin names in the theme pickers now scroll on hover instead of being cut
+  off, and switching champions shows a loading state.
+
+### Fixed
+
+- Theme pickers skip skins with no real splash art (old chroma-style entries)
+  and no longer briefly show the previous champion's skin when you switch.
+- Readable names for the ARAM: Mayhem, Brawl, and Swiftplay queues.
+
 ## [1.0.2] - 2026-06-07
 
 Match-history fixes and search polish.

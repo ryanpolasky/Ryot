@@ -21,9 +21,35 @@ const TAG_COLOR: Record<string, string> = {
 
 const ENTRIES: Entry[] = [
   {
-    version: "v1.0.2",
+    version: "v1.0.4",
     date: "June 2026",
     tag: "Latest",
+    changes: [
+      {
+        type: "New",
+        text: "Desktop: recent games are read from your League client, so event modes like ARAM: Mayhem and Brawl, which Riot's match API never exposes, finally show in your match history.",
+      },
+      {
+        type: "Improved",
+        text: "Desktop: the Download page and its nav links are hidden inside the app.",
+      },
+      {
+        type: "Improved",
+        text: "Long skin names in the theme pickers now scroll on hover instead of being cut off, with a loading state while a champion's skins load.",
+      },
+      {
+        type: "Fixed",
+        text: "Theme pickers skip skins with no real splash art and no longer flash the previous champion's skin when you switch.",
+      },
+      {
+        type: "Fixed",
+        text: "Readable names for the ARAM: Mayhem, Brawl, and Swiftplay queues.",
+      },
+    ],
+  },
+  {
+    version: "v1.0.2",
+    date: "June 2026",
     changes: [
       {
         type: "Fixed",

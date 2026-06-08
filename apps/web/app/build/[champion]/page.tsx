@@ -155,7 +155,6 @@ export default async function BuildPage({ params, searchParams }: Props) {
         <ThemeWithChampion
           id={champId}
           name={build.champion}
-          version={build.patch}
           accent={accentCh}
           accent2={accent2Ch}
           splash={splash}

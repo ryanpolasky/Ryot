@@ -5,6 +5,7 @@ export const QUEUE_NAMES: Record<number, string> = {
   430: "Normal Blind",
   440: "Ranked Flex",
   450: "ARAM",
+  480: "Swiftplay",
   490: "Quickplay",
   700: "Clash",
   720: "ARAM Clash",
@@ -17,6 +18,8 @@ export const QUEUE_NAMES: Record<number, string> = {
   1400: "Ultimate Spellbook",
   1700: "Arena",
   1900: "URF",
+  2300: "Brawl",
+  2400: "ARAM: Mayhem",
 };
 
 export function queueName(queueId: number): string {

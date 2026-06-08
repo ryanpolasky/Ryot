@@ -26,6 +26,7 @@ export default function MatchRow({
   region,
   name,
   tag,
+  local,
 }: {
   match: MatchDTO;
   focusPuuid: string;
@@ -34,6 +35,8 @@ export default function MatchRow({
   region?: string;
   name?: string;
   tag?: string;
+  /** Sourced from the local League client (no match-v5 breakdown available). */
+  local?: boolean;
 }) {
   const me = match.info.participants.find((p) => p.puuid === focusPuuid);
   if (!me) return null;
@@ -65,7 +68,7 @@ export default function MatchRow({
           {timeAgo(match.info.gameCreation)} ·{" "}
           {duration(match.info.gameDuration)}
         </div>
-        {region && (
+        {region && !local && (
           <a
             href={`/match/${region}/${encodeURIComponent(match.metadata.matchId)}?puuid=${encodeURIComponent(
               focusPuuid,
@@ -74,6 +77,14 @@ export default function MatchRow({
           >
             Breakdown ▸
           </a>
+        )}
+        {local && (
+          <span
+            title="Pulled from your League client; a full breakdown isn't available for this mode."
+            className="mt-1 font-mono text-[10px] uppercase tracking-widest text-faint"
+          >
+            From client
+          </span>
         )}
       </div>
 
