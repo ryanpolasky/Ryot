@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import ByokSettings from "@/components/ByokSettings";
 import ChampionThemePicker from "@/components/ChampionThemePicker";
+import DesktopSettings from "@/components/DesktopSettings";
 import MeSettings from "@/components/MeSettings";
 import RecentsSettings from "@/components/RecentsSettings";
 
@@ -45,6 +46,8 @@ export default function SettingsPage() {
           and needs no key.
         </p>
       </div>
+
+      <DesktopSettings />
 
       <ChampionThemePicker />
 

@@ -46,8 +46,7 @@ declare global {
       onHudConfig?: (cb: (cfg: HudConfig) => void) => void;
       getSavedLayout?: () => Promise<unknown>;
       saveLayout?: (saved: SavedLayouts | null) => Promise<void>;
-      onEditMode?: (cb: (on: boolean) => void) => void;
-      endEdit?: () => Promise<void>;
+      setIgnoreMouse?: (ignore: boolean) => Promise<void>;
       // Calibration editor bridge.
       onCalibrateMode?: (cb: (on: boolean) => void) => void;
       saveCalibration?: (data: string, map?: string) => Promise<string | null>;
@@ -73,6 +72,10 @@ let savedLayouts: SavedLayouts = {};
 let mapMode: MapMode = "rift"; // detected from the live game data
 let calMapMode: MapMode = "rift"; // the map currently being edited in the editor
 let lastData: AllGameData | null = null;
+// O-mode (manual full click-through) state + the window's current ignore-mouse
+// state, both mirrored from main so the hover-passthrough below stays in sync.
+let globalInteractive = false;
+let ignoringMouse = true;
 let layout: OverlayLayout = computeLayout(
   window.innerWidth,
   window.innerHeight,
@@ -86,6 +89,70 @@ function activeMap(): MapMode {
 }
 
 const LS_KEY = "ryot-overlay-layout";
+
+// ── per-panel preferences (the cog menus) ────────────────────────────────────
+interface OverlayPrefs {
+  stats: {
+    teamGold: boolean;
+    csPerMin: boolean;
+    goldPerMin: boolean;
+    visionPerMin: boolean;
+    killPart: boolean;
+    level: boolean;
+    autoOpen: boolean;
+    lock: boolean;
+    rank: string;
+  };
+  build: { autoOpen: boolean; showProgress: boolean; lock: boolean };
+}
+
+const PREFS_KEY = "ryot-overlay-prefs";
+
+const DEFAULT_PREFS: OverlayPrefs = {
+  stats: {
+    teamGold: false,
+    csPerMin: true,
+    goldPerMin: true,
+    visionPerMin: true,
+    killPart: true,
+    level: true,
+    autoOpen: true,
+    lock: false,
+    rank: "platinum_plus",
+  },
+  build: { autoOpen: true, showProgress: true, lock: false },
+};
+
+function loadPrefs(): OverlayPrefs {
+  try {
+    const raw = localStorage.getItem(PREFS_KEY);
+    if (!raw)
+      return {
+        stats: { ...DEFAULT_PREFS.stats },
+        build: { ...DEFAULT_PREFS.build },
+      };
+    const p = JSON.parse(raw) as Partial<OverlayPrefs>;
+    return {
+      stats: { ...DEFAULT_PREFS.stats, ...p.stats },
+      build: { ...DEFAULT_PREFS.build, ...p.build },
+    };
+  } catch {
+    return {
+      stats: { ...DEFAULT_PREFS.stats },
+      build: { ...DEFAULT_PREFS.build },
+    };
+  }
+}
+
+const prefs: OverlayPrefs = loadPrefs();
+
+function savePrefs() {
+  try {
+    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+  } catch {
+    /* ignore */
+  }
+}
 
 function place(
   el: HTMLElement,
@@ -184,24 +251,32 @@ async function loadItemCosts() {
 }
 
 // ── recommended build (Feature 3/4) ──────────────────────────────────────────
-const buildCache = new Map<string, OverlayBuild | null>();
-let currentChampion: string | null = null;
+// Only successful builds are cached (keyed by champion + rank); failures stay
+// uncached and guarded by buildInFlight, so a transient backend/u.gg hiccup
+// retries on the next tick instead of hiding the panel for the whole game.
+const buildCache = new Map<string, OverlayBuild>();
+const buildInFlight = new Set<string>();
 const coachState: CoachState = newCoachState();
 
+function buildKey(champion: string): string {
+  return `${champion}:${prefs.stats.rank}`;
+}
+
 async function fetchBuild(champion: string): Promise<void> {
-  if (buildCache.has(champion)) return;
-  buildCache.set(champion, null);
+  const key = buildKey(champion);
+  if (buildCache.has(key) || buildInFlight.has(key)) return;
+  buildInFlight.add(key);
   try {
     const res = await fetch(
-      `${API_BASE}/api/build/${encodeURIComponent(champion)}`,
-      {
-        cache: "no-store",
-      },
+      `${API_BASE}/api/build/${encodeURIComponent(champion)}?rank=${encodeURIComponent(prefs.stats.rank)}`,
+      { cache: "no-store" },
     );
     if (!res.ok) throw new Error(String(res.status));
-    buildCache.set(champion, (await res.json()) as OverlayBuild);
-  } catch {
-    buildCache.set(champion, null);
+    buildCache.set(key, (await res.json()) as OverlayBuild);
+  } catch (err) {
+    console.warn(`[overlay] build fetch failed for ${champion}:`, err);
+  } finally {
+    buildInFlight.delete(key);
   }
 }
 
@@ -227,14 +302,18 @@ function statRow(
 }
 
 function renderStatPanel(sp: StatPanel) {
-  $("sp-rows").innerHTML = [
-    statRow("Team Gold", fmtK(sp.teamGold), { v: sp.teamGoldDelta }),
-    statRow("CS / min", sp.csPerMin.toFixed(1)),
-    statRow("Gold / min", Math.round(sp.goldPerMin).toString()),
-    statRow("Vision / min", sp.visionPerMin.toFixed(2)),
-    statRow("Kill Part.", `${sp.killParticipation}%`),
-    statRow("Level", String(sp.level)),
-  ].join("");
+  const s = prefs.stats;
+  const rows: string[] = [];
+  if (s.teamGold)
+    rows.push(statRow("Team Gold", fmtK(sp.teamGold), { v: sp.teamGoldDelta }));
+  if (s.csPerMin) rows.push(statRow("CS / min", sp.csPerMin.toFixed(1)));
+  if (s.goldPerMin)
+    rows.push(statRow("Gold / min", Math.round(sp.goldPerMin).toString()));
+  if (s.visionPerMin)
+    rows.push(statRow("Vision / min", sp.visionPerMin.toFixed(2)));
+  if (s.killPart) rows.push(statRow("Kill Part.", `${sp.killParticipation}%`));
+  if (s.level) rows.push(statRow("Level", String(sp.level)));
+  $("sp-rows").innerHTML = rows.join("");
 }
 
 // ── 2. Minimap timers ────────────────────────────────────────────────────────
@@ -364,12 +443,9 @@ function renderNextBuy(data: AllGameData) {
     nb.classList.remove("show");
     return;
   }
-  if (champ !== currentChampion) {
-    currentChampion = champ;
-    void fetchBuild(champ);
-  }
-  const build = buildCache.get(champ) ?? null;
+  const build = buildCache.get(buildKey(champ)) ?? null;
   if (!build) {
+    void fetchBuild(champ); // load + retry on transient failure (guarded)
     nb.classList.remove("show");
     return;
   }
@@ -401,16 +477,19 @@ function renderNextBuy(data: AllGameData) {
     );
   $("nb-alerts").innerHTML = alerts.join("");
 
-  if (advice.nextItem) {
+  // "Show progress to next item" cog toggle gates the gold-to-next card.
+  const niEl = $("next-item");
+  if (!prefs.build.showProgress) {
+    niEl.innerHTML = "";
+  } else if (advice.nextItem) {
     const remain = advice.goldNeeded;
-    $("next-item").innerHTML = `
+    niEl.innerHTML = `
       <div class="ni-card ${advice.canAfford ? "ready" : ""}">
         ${advice.nextItem.icon ? `<img src="${advice.nextItem.icon}" alt="" />` : ""}
         <span class="ni-gold">${advice.canAfford ? "READY" : remain}</span>
       </div>`;
   } else {
-    $("next-item").innerHTML =
-      `<div class="ni-card"><span class="ni-gold">✓</span></div>`;
+    niEl.innerHTML = `<div class="ni-card"><span class="ni-gold">✓</span></div>`;
   }
 }
 
@@ -445,7 +524,11 @@ async function tick() {
 }
 
 window.overlay?.onInteractiveChange((interactive) => {
+  globalInteractive = interactive;
+  // Main set the window's ignore-mouse to match O-mode; keep our mirror in sync.
+  ignoringMouse = !interactive;
   document.body.classList.toggle("interactive", interactive);
+  applyPanelVisibility(); // O-mode reveals auto-hidden panels (to reach the cog)
 });
 
 window.overlay?.onTabState?.((held) => {
@@ -454,14 +537,9 @@ window.overlay?.onTabState?.((held) => {
 
 $("quit")?.addEventListener("click", () => window.overlay?.quit());
 
-// ── edit mode: drag the two free zones (stat panel + next-buy) ────────────────
-let editing = false;
-
-function setEditMode(on: boolean) {
-  editing = on;
-  document.body.classList.toggle("edit", on);
-}
-
+// ── draggable panels (stat panel + next-buy) ─────────────────────────────────
+// Persist the two free panels' positions for the current map (as fractions of
+// the viewport, so they survive resolution changes + restarts).
 function persistLayout() {
   savedLayouts[mapMode] = layoutToSaved(
     layout,
@@ -475,63 +553,6 @@ function persistLayout() {
   }
   void window.overlay?.saveLayout?.(savedLayouts);
 }
-
-function resetLayout() {
-  delete savedLayouts[mapMode];
-  try {
-    localStorage.setItem(LS_KEY, JSON.stringify(savedLayouts));
-  } catch {
-    /* ignore */
-  }
-  void window.overlay?.saveLayout?.(savedLayouts);
-  recomputeLayout();
-}
-
-// Drag handling for elements carrying a .drag-handle child.
-let drag: { zone: "statpanel" | "nextbuy"; dx: number; dy: number } | null =
-  null;
-
-document.querySelectorAll<HTMLElement>(".drag-handle").forEach((h) => {
-  h.addEventListener("mousedown", (e) => {
-    if (!editing) return;
-    const zone = h.dataset.zone as "statpanel" | "nextbuy";
-    const rect = layout[zone];
-    drag = { zone, dx: e.clientX - rect.x, dy: e.clientY - rect.y };
-    e.preventDefault();
-  });
-});
-
-window.addEventListener("mousemove", (e) => {
-  if (!drag) return;
-  const x = Math.max(0, Math.min(window.innerWidth - 40, e.clientX - drag.dx));
-  const y = Math.max(0, Math.min(window.innerHeight - 20, e.clientY - drag.dy));
-  layout[drag.zone] = { ...layout[drag.zone], x, y };
-  applyLayout();
-});
-
-window.addEventListener("mouseup", () => {
-  drag = null;
-});
-
-$("edit-save")?.addEventListener("click", () => {
-  persistLayout();
-  setEditMode(false);
-  void window.overlay?.endEdit?.();
-});
-$("edit-reset")?.addEventListener("click", resetLayout);
-$("edit-done")?.addEventListener("click", () => {
-  setEditMode(false);
-  void window.overlay?.endEdit?.();
-});
-
-// Edit mode is toggled by the desktop hotkey (Ctrl+Shift+E) via IPC, and by
-// pressing "e" when the overlay is focusable (used for headless testing).
-window.overlay?.onEditMode?.((on) => setEditMode(on));
-window.addEventListener("keydown", (e) => {
-  if (e.key === "e" && !drag && document.activeElement?.tagName !== "INPUT") {
-    setEditMode(!editing);
-  }
-});
 
 // ── calibration (debug) editor ────────────────────────────────────────────────
 // Ctrl+Shift+D (or 'd' in headless): every zone is draggable + resizable.
@@ -764,7 +785,11 @@ function setCalMap(map: MapMode) {
 
 function setCalibrationMode(on: boolean) {
   calibrating = on;
+  // Main toggles the window's ignore-mouse for calibration; mirror it so the
+  // hover-passthrough is correct again afterwards.
+  ignoringMouse = !on;
   document.body.classList.toggle("calibrating", on);
+  applyPanelVisibility();
   if (on) {
     // Default to editing whichever map the live game is on.
     calMapMode = mapMode;
@@ -951,7 +976,145 @@ window.addEventListener("keydown", (e) => {
   }
 });
 
+// ── always-draggable panels (stat panel + next-buy) ──────────────────────────
+// The overlay window is click-through (it ignores the mouse, forwarding move
+// events). So you can grab + move the two free panels at ANY time without
+// blocking clicks to the game, we make the window interactive only while the
+// cursor is over a draggable panel, and revert to click-through otherwise.
+function setPassthrough(ignore: boolean) {
+  if (ignore === ignoringMouse) return;
+  ignoringMouse = ignore;
+  void window.overlay?.setIgnoreMouse?.(ignore);
+}
+
+let drag: { zone: "statpanel" | "nextbuy"; dx: number; dy: number } | null =
+  null;
+
+for (const zone of ["statpanel", "nextbuy"] as const) {
+  $(zone)?.addEventListener("mousedown", (e) => {
+    if (calibrating) return; // the calibration editor has its own drag handling
+    // Don't drag from the cog / its menu, and respect the per-panel lock.
+    if ((e.target as HTMLElement).closest(".cog, .cog-menu")) return;
+    if (zone === "statpanel" ? prefs.stats.lock : prefs.build.lock) return;
+    const rect = layout[zone];
+    drag = { zone, dx: e.clientX - rect.x, dy: e.clientY - rect.y };
+    e.preventDefault();
+  });
+}
+
+window.addEventListener("mousemove", (e) => {
+  // While dragging a panel, move it and keep the window interactive.
+  if (drag) {
+    const x = Math.max(0, Math.min(window.innerWidth - 40, e.clientX - drag.dx));
+    const y = Math.max(0, Math.min(window.innerHeight - 20, e.clientY - drag.dy));
+    layout[drag.zone] = { ...layout[drag.zone], x, y };
+    applyLayout();
+    return;
+  }
+  // Calibration / O-mode already make the whole window interactive.
+  if (calibrating || globalInteractive) return;
+  // Interactive only while hovering a draggable panel; click-through otherwise.
+  const t = e.target as HTMLElement | null;
+  const over = !!t?.closest?.(".draggable");
+  if (!over) closeCogMenus(); // close an open cog menu when the cursor leaves
+  setPassthrough(!over);
+});
+
+window.addEventListener("mouseup", () => {
+  if (drag) {
+    persistLayout();
+    drag = null;
+  }
+});
+
+// ── per-panel settings cogs ──────────────────────────────────────────────
+// Hide a panel whose auto-open pref is off. O-mode / calibration force them
+// visible so a hidden panel's cog stays reachable to re-enable it.
+function applyPanelVisibility() {
+  const forced = globalInteractive || calibrating;
+  $("statpanel").classList.toggle(
+    "pref-hidden",
+    !prefs.stats.autoOpen && !forced,
+  );
+  $("nextbuy").classList.toggle("pref-hidden", !prefs.build.autoOpen && !forced);
+}
+
+function closeCogMenus() {
+  $("statpanel").classList.remove("cog-open");
+  $("nextbuy").classList.remove("cog-open");
+}
+
+// Re-render the stat rows now (e.g. right after toggling a row in the cog).
+function refreshStats() {
+  if (!lastData) return;
+  const me = findActivePlayer(lastData);
+  if (me) renderStatPanel(computeStatPanel(lastData, me, itemCosts));
+}
+
+// Reflect saved prefs into the cog inputs, then persist + apply on change.
+function wireCogs() {
+  const statChecks = [
+    "teamGold",
+    "csPerMin",
+    "goldPerMin",
+    "visionPerMin",
+    "killPart",
+    "level",
+    "autoOpen",
+    "lock",
+  ] as const;
+  for (const k of statChecks) {
+    const el = document.getElementById(
+      `pf-stats-${k}`,
+    ) as HTMLInputElement | null;
+    if (!el) continue;
+    el.checked = prefs.stats[k];
+    el.addEventListener("change", () => {
+      prefs.stats[k] = el.checked;
+      savePrefs();
+      applyPanelVisibility();
+      refreshStats();
+    });
+  }
+  const rankEl = document.getElementById(
+    "pf-stats-rank",
+  ) as HTMLSelectElement | null;
+  if (rankEl) {
+    rankEl.value = prefs.stats.rank;
+    rankEl.addEventListener("change", () => {
+      prefs.stats.rank = rankEl.value;
+      savePrefs(); // new rank -> new build key; renderNextBuy refetches next tick
+    });
+  }
+
+  const buildChecks = ["autoOpen", "showProgress", "lock"] as const;
+  for (const k of buildChecks) {
+    const el = document.getElementById(
+      `pf-build-${k}`,
+    ) as HTMLInputElement | null;
+    if (!el) continue;
+    el.checked = prefs.build[k];
+    el.addEventListener("change", () => {
+      prefs.build[k] = el.checked;
+      savePrefs();
+      applyPanelVisibility();
+    });
+  }
+
+  for (const id of ["statpanel", "nextbuy"]) {
+    document.getElementById(`${id}-cog`)?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const panel = $(id);
+      const open = panel.classList.contains("cog-open");
+      closeCogMenus();
+      if (!open) panel.classList.add("cog-open");
+    });
+  }
+}
+
 setStatus("Waiting for game…", false);
+wireCogs();
+applyPanelVisibility();
 void initLayout();
 void loadItemCosts();
 tick();

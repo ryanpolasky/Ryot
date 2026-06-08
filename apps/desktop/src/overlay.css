@@ -68,6 +68,10 @@ body {
 }
 body.in-game .statpanel {
   opacity: 1;
+  /* Draggable at all times while shown (the renderer toggles window
+     click-through on hover so this captures the mouse only over the panel). */
+  pointer-events: auto;
+  cursor: move;
 }
 
 .sp-head {
@@ -349,6 +353,101 @@ body.tab-held.in-game .scoreboard {
 }
 .nextbuy.show {
   opacity: 1;
+  pointer-events: auto;
+  cursor: move;
+}
+
+/* Highlight the draggable panels on hover so it's clear they can be moved. */
+body.in-game .statpanel:hover,
+.nextbuy.show:hover {
+  border-color: var(--gold);
+}
+
+/* ── Per-panel settings cog + popover ── */
+.cog {
+  position: absolute;
+  top: 3px;
+  right: 4px;
+  z-index: 50;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.panel:hover .cog {
+  opacity: 0.65;
+}
+.cog:hover {
+  opacity: 1;
+  color: var(--bone);
+}
+.cog-menu {
+  display: none;
+  position: absolute;
+  top: 20px;
+  right: 3px;
+  z-index: 60;
+  min-width: 172px;
+  background: var(--bg);
+  border: 1px solid var(--gold);
+  padding: 8px 9px;
+  font-family: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  font-size: 11px;
+  color: var(--bone);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+}
+/* Near the bottom of the screen (next-buy), drop the menu upward. */
+.nextbuy .cog-menu {
+  top: auto;
+  bottom: 20px;
+}
+.cog-open .cog-menu {
+  display: block;
+}
+.cog-menu label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.cog-menu input[type="checkbox"] {
+  accent-color: var(--gold);
+  cursor: pointer;
+}
+.cog-menu hr {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 6px 0;
+}
+.cog-menu .cog-row {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  margin-top: 2px;
+}
+.cog-menu select {
+  width: 100%;
+  background: #0a0a0b;
+  color: var(--bone);
+  border: 1px solid var(--line);
+  padding: 2px 4px;
+  font-size: 11px;
+}
+
+/* Auto-open OFF hides the panel. Ctrl+Shift+O (interactive) / calibration force
+   it back so its cog stays reachable to re-enable. */
+.panel.pref-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 .nb-head {

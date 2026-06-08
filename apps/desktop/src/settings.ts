@@ -24,6 +24,8 @@ export interface Settings {
   autoReveal: boolean;
   /** Whether the (possibly edited) rune page imports automatically on lock-in. */
   autoImportRunes: boolean;
+  /** Hide to the system tray on close, keeping Ryot resident for instant reopen. */
+  closeToTray: boolean;
   /**
    * Saved positions for the two draggable overlay zones (stat panel + next-buy),
    * stored as viewport fractions for resolution independence. null = use the
@@ -54,6 +56,7 @@ const DEFAULTS: Settings = {
   pregameEnabled: true,
   autoReveal: true,
   autoImportRunes: false,
+  closeToTray: true,
   overlayLayout: null,
 };
 

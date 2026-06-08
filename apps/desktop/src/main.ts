@@ -3,8 +3,11 @@ import {
   BrowserWindow,
   globalShortcut,
   ipcMain,
+  Menu,
+  nativeImage,
   screen,
   shell,
+  Tray,
   type IpcMainInvokeEvent,
 } from "electron";
 import { mkdirSync, writeFileSync, existsSync } from "node:fs";
@@ -34,6 +37,7 @@ import {
   type SpellImportPayload,
 } from "./lcu.js";
 import { regionToPlatform } from "./regions.js";
+import { watchLeagueForeground, type ForegroundWatcher } from "./foreground.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MOCK = process.env.LC_OVERLAY_MOCK === "1";
@@ -43,11 +47,23 @@ let overlayWin: BrowserWindow | null = null;
 let settingsWin: BrowserWindow | null = null;
 let pregameWin: BrowserWindow | null = null;
 let overlayInteractive = false;
-let overlayEditing = false;
 let overlayCalibrating = false;
 let champSelectPollTimer: ReturnType<typeof setInterval> | null = null;
 let wasInChampSelect = false;
 let lastRevealedGame = false;
+// Overlay auto-hide: the overlay is an in-game HUD, so it should be visible only
+// while the League game window is focused. Non-Windows can't be polled, so it
+// defaults to focused there (overlay always shows, as before).
+let leagueForeground = process.platform !== "win32";
+let overlayManualHidden = false;
+let foregroundWatcher: ForegroundWatcher | null = null;
+let tray: Tray | null = null;
+// Close-to-tray keeps Ryot resident so it reopens instantly; isQuitting lets a
+// real quit (tray menu / app.quit) bypass the hide-on-close. trayHintShown
+// gates the one-time "still running" notice.
+let isQuitting = false;
+let trayHintShown = false;
+let mainStartUrl = "";
 
 /** Build the Ryot URL to open on launch: your profile if the client is up. */
 async function resolveStartUrl(settings: Settings): Promise<string> {
@@ -122,6 +138,26 @@ function createMainWindow(startUrl: string) {
 
   mainWin.loadURL(startUrl);
 
+  // Close-to-tray: hide instead of quitting so Ryot stays resident and reopens
+  // instantly. A real quit sets isQuitting first (before-quit / tray menu).
+  mainWin.on("close", (e) => {
+    if (isQuitting || !loadSettings().closeToTray) return;
+    e.preventDefault();
+    mainWin?.hide();
+    if (!trayHintShown) {
+      trayHintShown = true;
+      try {
+        tray?.displayBalloon({
+          title: "Ryot is still running",
+          content:
+            "Ryot stays in the tray so it reopens instantly. Right-click the tray icon to quit.",
+        });
+      } catch {
+        /* balloons are Windows-only; ignore elsewhere */
+      }
+    }
+  });
+
   // If the hosted site can't be reached, drop to a local helper page that lets
   // the user fix the server URL.
   mainWin.webContents.on(
@@ -156,6 +192,47 @@ function createMainWindow(startUrl: string) {
     if (isSafeExternalScheme(url)) shell.openExternal(url);
     return { action: "deny" };
   });
+}
+
+// Show (and focus) the main window, recreating it if it was fully closed.
+function showMainWindow() {
+  if (!mainWin) {
+    createMainWindow(mainStartUrl);
+    return;
+  }
+  if (mainWin.isMinimized()) mainWin.restore();
+  mainWin.show();
+  mainWin.focus();
+}
+
+// System-tray icon so Ryot can live in the tray (close-to-tray) and reopen
+// instantly. Best-effort: if the icon can't load, skip the tray rather than
+// crash.
+function createTray() {
+  if (tray) return;
+  const img = nativeImage.createFromPath(join(__dirname, "icon.png"));
+  if (img.isEmpty()) return;
+  try {
+    tray = new Tray(img.resize({ width: 16, height: 16 }));
+  } catch {
+    return;
+  }
+  tray.setToolTip("Ryot");
+  tray.setContextMenu(
+    Menu.buildFromTemplate([
+      { label: "Open Ryot", click: showMainWindow },
+      { label: "Settings", click: openSettings },
+      { type: "separator" },
+      {
+        label: "Quit Ryot",
+        click: () => {
+          isQuitting = true;
+          app.quit();
+        },
+      },
+    ]),
+  );
+  tray.on("click", showMainWindow);
 }
 
 function createOverlay() {
@@ -198,21 +275,29 @@ function createOverlay() {
   overlayWin.loadURL(url.toString());
 }
 
+// The overlay shows only while the League game is focused - EXCEPT while you're
+// actively using it (edit / calibration / interactive), and never when you've
+// force-hidden it with Ctrl+Shift+H.
+function overlayShouldShow(): boolean {
+  if (overlayCalibrating || overlayInteractive) return true;
+  if (overlayManualHidden) return false;
+  return leagueForeground;
+}
+
+function applyOverlayVisibility() {
+  if (!overlayWin) return;
+  const show = overlayShouldShow();
+  // showInactive so re-appearing never steals focus from the game.
+  if (show && !overlayWin.isVisible()) overlayWin.showInactive();
+  else if (!show && overlayWin.isVisible()) overlayWin.hide();
+}
+
 function setOverlayInteractive(next: boolean) {
   overlayInteractive = next;
   if (!overlayWin) return;
+  applyOverlayVisibility();
   overlayWin.setIgnoreMouseEvents(!overlayInteractive, { forward: true });
   overlayWin.webContents.send("overlay:interactive", overlayInteractive);
-}
-
-function setOverlayEditMode(next: boolean) {
-  overlayEditing = next;
-  if (!overlayWin) return;
-  // Edit mode needs mouse input + focus so the user can drag panels.
-  overlayWin.setIgnoreMouseEvents(!next, { forward: true });
-  overlayWin.setFocusable(next);
-  if (next) overlayWin.focus();
-  overlayWin.webContents.send("overlay:edit-mode", next);
 }
 
 function openSettings() {
@@ -307,6 +392,11 @@ async function revealLiveLobby() {
 
 function startChampSelectPolling() {
   if (champSelectPollTimer) return;
+  console.log(
+    `[pregame] champ-select polling started (pregameEnabled=${
+      loadSettings().pregameEnabled
+    }); the pre-game window only opens while you're in champ select`,
+  );
 
   champSelectPollTimer = setInterval(async () => {
     const settings = loadSettings();
@@ -331,9 +421,11 @@ function startChampSelectPolling() {
 
     if (inChampSelect && !wasInChampSelect) {
       wasInChampSelect = true;
+      console.log("[pregame] champ select detected -> opening pre-game window");
       openPregame();
     } else if (!inChampSelect && wasInChampSelect) {
       wasInChampSelect = false;
+      console.log("[pregame] champ select ended -> closing pre-game window");
       closePregame();
     }
 
@@ -358,34 +450,64 @@ app.on(
   },
 );
 
+// Single-instance lock: a second launch (or a leftover dev instance) would fail
+// to register the global hotkeys, leaving them silently dead. Bail out of the
+// duplicate and focus the already-running window instead.
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  app.on("second-instance", () => {
+    if (mainWin) {
+      if (mainWin.isMinimized()) mainWin.restore();
+      mainWin.focus();
+    }
+  });
+}
+
 app.whenReady().then(async () => {
   const settings = loadSettings();
   const startUrl = await resolveStartUrl(settings);
 
+  mainStartUrl = startUrl;
   createMainWindow(startUrl);
   createOverlay();
+  createTray();
+
+  // Auto-hide the overlay whenever the League game window isn't focused (e.g.
+  // you alt-tab to a browser). Windows-only; fails open so it can't get stuck
+  // hidden.
+  foregroundWatcher = watchLeagueForeground((isGame) => {
+    leagueForeground = isGame;
+    applyOverlayVisibility();
+  });
+  applyOverlayVisibility();
 
   // Auto-update from GitHub Releases (packaged builds only).
   initAutoUpdates(() => mainWin);
 
-  // Overlay hotkeys (same as the standalone overlay).
-  globalShortcut.register("CommandOrControl+Shift+O", () =>
+  // Overlay hotkeys. Log if any fail to register - usually another app (or a
+  // leftover Ryot instance) already owns the combo.
+  const hotkey = (accel: string, cb: () => void) => {
+    if (!globalShortcut.register(accel, cb))
+      console.warn(`[overlay] hotkey ${accel} not registered (already in use?)`);
+  };
+
+  // Ctrl+Shift+O: toggle full click-through so you can click overlay controls.
+  hotkey("CommandOrControl+Shift+O", () =>
     setOverlayInteractive(!overlayInteractive),
   );
-  globalShortcut.register("CommandOrControl+Shift+H", () => {
+  hotkey("CommandOrControl+Shift+H", () => {
     if (!overlayWin) return;
-    if (overlayWin.isVisible()) overlayWin.hide();
-    else overlayWin.show();
+    // Manual force-hide that overrides auto-hide until toggled back.
+    overlayManualHidden = !overlayManualHidden;
+    applyOverlayVisibility();
   });
-  globalShortcut.register("CommandOrControl+Shift+S", openSettings);
-  // Ctrl+Shift+E: toggle edit mode to drag the stat panel / next-buy panels.
-  globalShortcut.register("CommandOrControl+Shift+E", () =>
-    setOverlayEditMode(!overlayEditing),
-  );
-  // Ctrl+Shift+D: toggle calibration (debug) editor.
-  globalShortcut.register("CommandOrControl+Shift+D", () => {
+  hotkey("CommandOrControl+Shift+S", openSettings);
+  // Ctrl+Shift+D: toggle the calibration (debug) editor.
+  hotkey("CommandOrControl+Shift+D", () => {
     overlayCalibrating = !overlayCalibrating;
     if (!overlayWin) return;
+    applyOverlayVisibility();
     overlayWin.setIgnoreMouseEvents(!overlayCalibrating, { forward: true });
     overlayWin.setFocusable(overlayCalibrating);
     if (overlayCalibrating) overlayWin.focus();
@@ -400,7 +522,15 @@ app.whenReady().then(async () => {
   ipcMain.handle("overlay:save-layout", (_e, saved: OverlayLayout | null) => {
     saveSettings({ overlayLayout: saved });
   });
-  ipcMain.handle("overlay:end-edit", () => setOverlayEditMode(false));
+  // Per-region click-through: the renderer makes the window interactive only
+  // while the cursor is over a draggable panel, so those panels are draggable at
+  // all times without blocking clicks to the game everywhere else.
+  ipcMain.handle("overlay:set-ignore-mouse", (_e, ignore: unknown) => {
+    if (!overlayWin) return;
+    // Calibration / O-mode own full interactivity; don't fight them.
+    if (overlayCalibrating || overlayInteractive) return;
+    overlayWin.setIgnoreMouseEvents(!!ignore, { forward: true });
+  });
   // Calibration editor
   ipcMain.handle(
     "overlay:save-calibration",
@@ -427,6 +557,7 @@ app.whenReady().then(async () => {
     overlayWin.setIgnoreMouseEvents(true, { forward: true });
     overlayWin.setFocusable(false);
     overlayWin.webContents.send("overlay:calibrate-mode", false);
+    applyOverlayVisibility();
   });
 
   // ── IPC: bridge exposed to the hosted web page (window.ryot) ──
@@ -471,6 +602,28 @@ app.whenReady().then(async () => {
       if (!verifySender(e)) throw new Error("Unauthorized IPC");
       await importSpells(payload);
       return { ok: true };
+    },
+  );
+  // Desktop preferences the web Settings page can read/write (gated to the
+  // trusted Ryot frame). Side-effect-light: closeToTray is read fresh on window
+  // close; launchOnStartup maps to the OS login-item.
+  ipcMain.handle("ryot:getPrefs", (e) => {
+    if (!verifySender(e)) return null;
+    return {
+      closeToTray: loadSettings().closeToTray,
+      launchOnStartup: app.getLoginItemSettings().openAtLogin,
+    };
+  });
+  ipcMain.handle(
+    "ryot:setPrefs",
+    (e, prefs: { closeToTray?: boolean; launchOnStartup?: boolean }) => {
+      if (!verifySender(e)) return;
+      if (typeof prefs?.closeToTray === "boolean") {
+        saveSettings({ closeToTray: prefs.closeToTray });
+      }
+      if (typeof prefs?.launchOnStartup === "boolean") {
+        app.setLoginItemSettings({ openAtLogin: prefs.launchOnStartup });
+      }
     },
   );
 
@@ -565,8 +718,14 @@ app.whenReady().then(async () => {
 });
 
 app.on("window-all-closed", () => app.quit());
+app.on("before-quit", () => {
+  isQuitting = true;
+});
 app.on("will-quit", () => {
   globalShortcut.unregisterAll();
+  foregroundWatcher?.stop();
+  tray?.destroy();
+  tray = null;
   try {
     uIOhook.stop();
   } catch {

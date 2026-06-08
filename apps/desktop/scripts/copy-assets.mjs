@@ -21,6 +21,9 @@ for (const file of [
   cpSync(join(src, file), join(dist, file));
 }
 
+// Tray / runtime icon (lives in buildResources; loaded by the system tray).
+cpSync(join(root, "buildResources", "icon.png"), join(dist, "icon.png"));
+
 // Electron loads preload scripts via require(); under "type": "module" a `.js`
 // file is ESM and fails with ERR_REQUIRE_ESM. Electron 28+ loads ESM preloads
 // only when they carry the `.mjs` extension, so rename the compiled preloads.

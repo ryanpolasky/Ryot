@@ -13,9 +13,10 @@ contextBridge.exposeInMainWorld("overlay", {
   getSavedLayout: () => ipcRenderer.invoke("overlay:get-layout"),
   saveLayout: (saved: unknown) =>
     ipcRenderer.invoke("overlay:save-layout", saved),
-  onEditMode: (cb: (on: boolean) => void) =>
-    ipcRenderer.on("overlay:edit-mode", (_e, v: boolean) => cb(v)),
-  endEdit: () => ipcRenderer.invoke("overlay:end-edit"),
+  // Per-region click-through: the renderer toggles this so the draggable panels
+  // capture the mouse only while hovered, leaving the rest click-through.
+  setIgnoreMouse: (ignore: boolean) =>
+    ipcRenderer.invoke("overlay:set-ignore-mouse", ignore),
   // Calibration editor bridge.
   onCalibrateMode: (cb: (on: boolean) => void) =>
     ipcRenderer.on("overlay:calibrate-mode", (_e, v: boolean) => cb(v)),

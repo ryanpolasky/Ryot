@@ -9,7 +9,30 @@
   <body>
     <!-- 1. Stat panel (top-right by default, DRAGGABLE) -->
     <div class="panel statpanel draggable" id="statpanel">
-      <div class="drag-handle" data-zone="statpanel"></div>
+      <button class="cog" id="statpanel-cog" title="Settings" aria-label="Stat panel settings">⚙</button>
+      <div class="cog-menu" id="statpanel-menu">
+        <label><input type="checkbox" id="pf-stats-teamGold" /> Team gold</label>
+        <label><input type="checkbox" id="pf-stats-csPerMin" /> CS / min</label>
+        <label><input type="checkbox" id="pf-stats-goldPerMin" /> Gold / min</label>
+        <label><input type="checkbox" id="pf-stats-visionPerMin" /> Vision / min</label>
+        <label><input type="checkbox" id="pf-stats-killPart" /> Kill participation</label>
+        <label><input type="checkbox" id="pf-stats-level" /> Level</label>
+        <hr />
+        <label><input type="checkbox" id="pf-stats-autoOpen" /> Auto-open in game</label>
+        <label><input type="checkbox" id="pf-stats-lock" /> Lock window</label>
+        <label class="cog-row"
+          >Compare to
+          <select id="pf-stats-rank">
+            <option value="platinum_plus">Platinum+</option>
+            <option value="emerald_plus">Emerald+</option>
+            <option value="diamond_plus">Diamond+</option>
+            <option value="master_plus">Master+</option>
+            <option value="grandmaster">Grandmaster</option>
+            <option value="challenger">Challenger</option>
+            <option value="overall">Overall</option>
+          </select>
+        </label>
+      </div>
       <div class="sp-head">
         <span class="brand"><b>Ry</b>ot</span>
         <span class="sp-clock" id="gametime">0:00</span>
@@ -49,7 +72,12 @@
 
     <!-- 4. Next item / build (near minimap, DRAGGABLE) -->
     <div class="panel nextbuy draggable" id="nextbuy">
-      <div class="drag-handle" data-zone="nextbuy"></div>
+      <button class="cog" id="nextbuy-cog" title="Settings" aria-label="Build panel settings">⚙</button>
+      <div class="cog-menu" id="nextbuy-menu">
+        <label><input type="checkbox" id="pf-build-autoOpen" /> Show when a match starts</label>
+        <label><input type="checkbox" id="pf-build-showProgress" /> Show progress to next item</label>
+        <label><input type="checkbox" id="pf-build-lock" /> Lock window</label>
+      </div>
       <div class="nb-head">
         <span class="nb-champ" id="nb-champ"></span>
         <span class="nb-role" id="nb-role"></span>
@@ -59,17 +87,6 @@
         <div class="build-path" id="build-path"></div>
         <div class="next-item" id="next-item"></div>
       </div>
-    </div>
-
-    <!-- Edit mode toolbar (only visible in edit mode) -->
-    <div class="edit-toolbar" id="edit-toolbar">
-      <span class="edit-hint"
-        >Drag the gold-bordered panels to reposition. Load Practice Tool for
-        best results.</span
-      >
-      <button class="edit-btn" id="edit-save">Save</button>
-      <button class="edit-btn" id="edit-reset">Reset</button>
-      <button class="edit-btn" id="edit-done">Done</button>
     </div>
 
     <!-- Calibration (debug) editor: Ctrl+Shift+D -->

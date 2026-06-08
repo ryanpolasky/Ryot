@@ -36,4 +36,13 @@ contextBridge.exposeInMainWorld("ryot", {
     defaultRiotId: string;
     defaultRegion: string;
   }> => ipcRenderer.invoke("settings:get"),
+  // Desktop-only preferences surfaced in the web Settings page.
+  getPrefs: (): Promise<{
+    closeToTray: boolean;
+    launchOnStartup: boolean;
+  } | null> => ipcRenderer.invoke("ryot:getPrefs"),
+  setPrefs: (prefs: {
+    closeToTray?: boolean;
+    launchOnStartup?: boolean;
+  }): Promise<void> => ipcRenderer.invoke("ryot:setPrefs", prefs),
 });

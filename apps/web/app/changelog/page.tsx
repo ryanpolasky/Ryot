@@ -21,9 +21,35 @@ const TAG_COLOR: Record<string, string> = {
 
 const ENTRIES: Entry[] = [
   {
-    version: "v1.0.4",
+    version: "v1.0.5",
     date: "June 2026",
     tag: "Latest",
+    changes: [
+      {
+        type: "Fixed",
+        text: "Builds and the tier list no longer show 'Down': u.gg had started blocking our requests, now resolved.",
+      },
+      {
+        type: "New",
+        text: "In-game overlay panels (stats + build) are draggable at any time, each with a settings cog: toggle individual stat rows, lock a panel, pick the build rank, and more.",
+      },
+      {
+        type: "New",
+        text: "Desktop: close to the tray to keep Ryot running for instant reopen, plus a Desktop section in Settings (close-to-tray and launch at login).",
+      },
+      {
+        type: "Improved",
+        text: "Desktop: the overlay hides when the League game window isn't focused (e.g. you alt-tab away) and returns when you tab back.",
+      },
+      {
+        type: "Fixed",
+        text: "The in-game build panel recovers from a temporary hiccup instead of staying blank, and the overlay calibration editor hotkey works reliably again.",
+      },
+    ],
+  },
+  {
+    version: "v1.0.4",
+    date: "June 2026",
     changes: [
       {
         type: "New",

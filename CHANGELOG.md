@@ -4,6 +4,31 @@ All notable changes to Ryot are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2026-06-08
+
+Overlay upgrades, desktop quality-of-life, and a u.gg fix.
+
+### Added
+
+- In-game overlay panels (stats + build) are draggable at any time, each with a
+  settings cog: toggle individual stat rows, lock a panel, choose the build
+  rank, and more.
+- Desktop: close-to-tray keeps Ryot running for instant reopen, plus a Desktop
+  section in Settings (close-to-tray and launch at login).
+
+### Changed
+
+- Desktop: the overlay now hides whenever the League game window isn't focused
+  (e.g. when you alt-tab to a browser) and reappears when you tab back.
+
+### Fixed
+
+- Builds and the tier list no longer show "Down": u.gg had started blocking our
+  requests, which is now resolved.
+- The in-game build panel recovers from a temporary hiccup instead of staying
+  blank for the rest of the game.
+- The overlay calibration editor hotkey (Ctrl+Shift+D) works reliably again.
+
 ## [1.0.4] - 2026-06-08
 
 Desktop match history from the League client, plus theme polish.

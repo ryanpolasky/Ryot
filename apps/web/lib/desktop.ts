@@ -99,6 +99,15 @@ export interface RyotBridge {
     spell1Id: number;
     spell2Id: number;
   }) => Promise<{ ok: true }>;
+  /** Desktop preferences shown in the web Settings page (close-to-tray etc.). */
+  getPrefs?: () => Promise<{
+    closeToTray: boolean;
+    launchOnStartup: boolean;
+  } | null>;
+  setPrefs?: (prefs: {
+    closeToTray?: boolean;
+    launchOnStartup?: boolean;
+  }) => Promise<void>;
 }
 
 declare global {
