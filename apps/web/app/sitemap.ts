@@ -10,7 +10,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }> = [
     { path: "/", priority: 1.0, freq: "weekly" },
     { path: "/tier-list", priority: 0.9, freq: "daily" },
-    { path: "/build/Aatrox", priority: 0.8, freq: "weekly" },
+    { path: "/build", priority: 0.8, freq: "weekly" },
     { path: "/download", priority: 0.8, freq: "monthly" },
     { path: "/about", priority: 0.7, freq: "monthly" },
     { path: "/faq", priority: 0.6, freq: "monthly" },

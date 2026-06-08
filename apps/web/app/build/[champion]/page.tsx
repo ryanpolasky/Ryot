@@ -8,6 +8,7 @@ import {
   hexToRgbChannels,
   mixHex,
   resolveChampionId,
+  splashArtUrl,
   splashUrl,
 } from "@/lib/accent";
 import { ApiError, getBuild, type RecommendedBuildResult } from "@/lib/api";
@@ -78,7 +79,7 @@ export default async function BuildPage({ params, searchParams }: Props) {
               : "A data source may be rate-limiting us right now. Try again in a moment."}
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/build/Aatrox" className="btn-outline">
+            <Link href="/build" className="btn-outline">
               Browse builds
             </Link>
             <Link href="/tier-list" className="btn-outline">
@@ -94,8 +95,10 @@ export default async function BuildPage({ params, searchParams }: Props) {
   }
 
   const champId = championIdFromIcon(build.championIcon);
-  const splash = splashUrl(champId);
-  const accent = await accentFromSplash(splash);
+  // Hi-res centered art for display (hero + site theme); accent decodes the
+  // smaller Data Dragon splash to keep it cheap.
+  const splash = splashArtUrl(champId);
+  const accent = await accentFromSplash(splashUrl(champId));
   const accentCh = hexToRgbChannels(accent);
   // Lighter variant for the gold2 hover token, mixed toward bone.
   const accent2Ch = hexToRgbChannels(mixHex(accent, BONE, 0.35));
@@ -152,6 +155,7 @@ export default async function BuildPage({ params, searchParams }: Props) {
         <ThemeWithChampion
           id={champId}
           name={build.champion}
+          version={build.patch}
           accent={accentCh}
           accent2={accent2Ch}
           splash={splash}

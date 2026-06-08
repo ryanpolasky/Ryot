@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld("ryot", {
     gameName: string;
     tagLine: string;
     platform: string;
+    puuid?: string;
   } | null> => ipcRenderer.invoke("ryot:getCurrentSummoner"),
   importRunes: (payload: {
     name: string;

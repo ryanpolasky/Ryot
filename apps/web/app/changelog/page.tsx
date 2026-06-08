@@ -21,9 +21,71 @@ const TAG_COLOR: Record<string, string> = {
 
 const ENTRIES: Entry[] = [
   {
-    version: "v1.0.0 · First stable release",
+    version: "v1.0.1",
     date: "June 2026",
     tag: "Latest",
+    changes: [
+      {
+        type: "New",
+        text: "Champion search typeahead: find a champion by name from a dropdown (with portraits) on the home page and build pages.",
+      },
+      {
+        type: "New",
+        text: "Champion builds browser at /build: a searchable grid of every champion instead of defaulting to one.",
+      },
+      {
+        type: "New",
+        text: 'Skin-aware site theming: theme the whole site with a specific champion skin, from Settings or a build page\u2019s "Theme site" dropdown.',
+      },
+      {
+        type: "New",
+        text: "Recent-search suggestions in the summoner search, stored only in your browser, with an opt-out in Settings.",
+      },
+      {
+        type: "New",
+        text: 'Mark your own account as "me" (in Settings or the "This is me" button on a profile) to pin it to the top of suggestions. The desktop app also detects you and recently played-with players via the League Client.',
+      },
+      {
+        type: "New",
+        text: "Unified search: one box searches both Riot IDs and champions, with an alternating SUMMONER / CHAMPION accent word.",
+      },
+      {
+        type: "Improved",
+        text: "Sharper, better-framed champion splash art on share cards and the site theme backdrop.",
+      },
+      {
+        type: "Improved",
+        text: "Post-game and session tags are now all positive or neutral.",
+      },
+      {
+        type: "Improved",
+        text: 'The status page treats a u.gg rate-limit as a brief "degraded" that self-heals, instead of a stuck "down".',
+      },
+      {
+        type: "Fixed",
+        text: "The top ticker no longer jumps when it loops.",
+      },
+      {
+        type: "Improved",
+        text: "Tighter, sharper champion grid on the builds browser, and more consistent match-history rows.",
+      },
+      {
+        type: "Fixed",
+        text: "Match history now reaches older games and ARAMs: Load more works without a personal key.",
+      },
+      {
+        type: "Fixed",
+        text: "Champion and mastery icons on profiles now load for multi-word champions (e.g. Miss Fortune).",
+      },
+      {
+        type: "Fixed",
+        text: "The champion-theme dropdown scrolls instead of closing, and dropdown chevrons aren't cramped against the edge.",
+      },
+    ],
+  },
+  {
+    version: "v1.0.0 · First stable release",
+    date: "June 2026",
     changes: [
       {
         type: "New",

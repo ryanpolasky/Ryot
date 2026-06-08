@@ -5,6 +5,8 @@ import { findQueue } from "@/lib/format";
 import RankCard from "@/components/RankCard";
 import MatchHistory from "@/components/MatchHistory";
 import SearchBar from "@/components/SearchBar";
+import RecordRecentView from "@/components/RecordRecentView";
+import ThisIsMeButton from "@/components/ThisIsMeButton";
 import AccountStats from "@/components/AccountStats";
 import SessionTracker from "@/components/SessionTracker";
 import type { Metadata } from "next";
@@ -101,6 +103,11 @@ export default async function SummonerPage({
 
   return (
     <div className="animate-riseIn space-y-6">
+      <RecordRecentView
+        region={region}
+        gameName={profile.account.gameName}
+        tagLine={profile.account.tagLine}
+      />
       <SearchBar
         defaultRegion={region}
         initialQuery={`${gameName}#${tagLine}`}
@@ -127,12 +134,19 @@ export default async function SummonerPage({
             · {region.toUpperCase()}
           </div>
         </div>
-        <Link
-          href={`/live/${region}/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`}
-          className="btn-outline ml-auto"
-        >
-          Live Game ▸
-        </Link>
+        <div className="ml-auto flex items-center gap-2">
+          <ThisIsMeButton
+            region={region}
+            gameName={profile.account.gameName}
+            tagLine={profile.account.tagLine}
+          />
+          <Link
+            href={`/live/${region}/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`}
+            className="btn-outline"
+          >
+            Live Game ▸
+          </Link>
+        </div>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">

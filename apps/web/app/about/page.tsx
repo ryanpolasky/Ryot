@@ -42,6 +42,7 @@ const SECTIONS = [
     h: "Who's behind it",
     body: [
       "Ryot is made and run by me, Ryan, for my friend group, hosted on my own server with my own Riot API key. It's open source under the MIT license. If anything here sounds too good to be true, the source is right there to check.",
+      "This project is a personal open-source project and is not affiliated with, endorsed by, or sponsored by any employer.",
     ],
   },
 ];
@@ -53,7 +54,7 @@ export default function AboutPage() {
         <p className="eyebrow mb-4">// A different kind of companion app</p>
         <h1 className="font-display text-[12vw] leading-[0.82] tracking-tightest text-bone sm:text-[7rem]">
           ABOUT <br />
-          RYOT
+          <span className="text-brand">RY</span>OT
         </h1>
         <p className="mt-6 max-w-2xl font-sans text-lg leading-relaxed text-muted">
           An open-source, ad-free, privacy-first League companion. Built for a
@@ -146,11 +147,6 @@ export default function AboutPage() {
           FAQ
         </Link>
       </section>
-
-      <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-faint">
-        Ryot isn&apos;t endorsed by Riot Games and doesn&apos;t reflect their
-        views. Data via the Riot API &amp; Data Dragon.
-      </p>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { ddragonImg } from "@lc/shared";
 import { useEffect, useState } from "react";
 import { ApiError, getAccountStats, type AccountStatsResult } from "@/lib/api";
 import { byokHeaders, hasByokKey } from "@/lib/byok";
+import { loadChampions } from "@/lib/champions";
 import { onIconError } from "@/lib/img";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -35,6 +36,7 @@ export default function AccountStats({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [champFiles, setChampFiles] = useState<Map<number, string>>(new Map());
 
   async function load(sample: number) {
     setLoading(true);
@@ -61,6 +63,26 @@ export default function AccountStats({
     load(20);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [region, name, tag]);
+
+  // The API's championName is the *display* name, which doesn't match the Data
+  // Dragon filename for multi-word champs (e.g. "Miss Fortune" vs
+  // MissFortune.png), so map champion id -> real image file.
+  useEffect(() => {
+    loadChampions()
+      .then((d) => {
+        const m = new Map<number, string>();
+        for (const c of d.champions) m.set(Number(c.key), c.image.full);
+        setChampFiles(m);
+      })
+      .catch(() => {});
+  }, []);
+
+  function champIcon(championId: number, championName: string): string {
+    return ddragonImg.champion(
+      version,
+      champFiles.get(championId) ?? `${championName}.png`,
+    );
+  }
 
   return (
     <div>
@@ -167,7 +189,7 @@ export default function AccountStats({
               >
                 <span className="flex items-center gap-2">
                   <img
-                    src={ddragonImg.champion(version, `${c.championName}.png`)}
+                    src={champIcon(c.championId, c.championName)}
                     alt={c.championName}
                     width={28}
                     height={28}
@@ -203,10 +225,7 @@ export default function AccountStats({
                     title={`${m.points.toLocaleString()} pts`}
                   >
                     <img
-                      src={ddragonImg.champion(
-                        version,
-                        `${m.championName}.png`,
-                      )}
+                      src={champIcon(m.championId, m.championName)}
                       alt={m.championName}
                       width={24}
                       height={24}

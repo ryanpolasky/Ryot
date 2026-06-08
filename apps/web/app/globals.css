@@ -201,6 +201,14 @@
       focus:border-gold focus:bg-surface;
   }
 
+  /* Select: a field with a custom chevron (native arrows render too tight). */
+  .select {
+    @apply field cursor-pointer appearance-none bg-no-repeat pr-9;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%23a39d92' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 4.5 3 3 3-3'/%3E%3C/svg%3E");
+    background-position: right 0.7rem center;
+    background-size: 0.7rem;
+  }
+
   /* Chips / tags */
   .chip {
     @apply inline-flex items-center gap-1.5 border border-line bg-surface2 px-2.5 py-1

@@ -89,9 +89,21 @@ export async function accentFromSplash(splashUrl: string): Promise<string> {
   }
 }
 
-// Canonical Data Dragon splash URL for a champion id (e.g. "Aatrox", "MonkeyKing").
-export function splashUrl(championId: string): string {
-  return `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${championId}_0.jpg`;
+// Data Dragon splash (1215x717) for a champion skin (skinNum 0 = base). Used for
+// accent extraction: it's the smaller image, so the JPEG decode stays cheap.
+export function splashUrl(championId: string, skinNum = 0): string {
+  return `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${championId}_${skinNum}.jpg`;
+}
+
+// Splash for *display* (Community Dragon, 1280x720 centered) for a skin (0 =
+// base). Riot's splash tops out at this res on the public CDNs (Data Dragon's is
+// 1215x717), but the centered 16:9 crop fits the OG card + site backdrop better.
+// Accepts the same canonical id/alias as Data Dragon.
+export function splashArtUrl(championId: string, skinNum = 0): string {
+  const base = `https://cdn.communitydragon.org/latest/champion/${encodeURIComponent(
+    championId,
+  )}/splash-art/centered`;
+  return skinNum > 0 ? `${base}/skin/${skinNum}` : base;
 }
 
 // resolve a champion id/name/key to its canonical data dragon id; falls back to "Aatrox"

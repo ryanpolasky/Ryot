@@ -4,8 +4,8 @@
  * A "session" is one continuous sitting of games: consecutive matches separated
  * by less than `gapMinutes` of downtime. We split a player's recent match list
  * into sessions, then summarise the most recent one (wins, losses, win rate,
- * current streak) and tag it with Porofessor-style behavioural labels
- * (Heater, Cold Streak, Chain Loser, Bounce Back, On Tilt, Coin Flip, ...).
+ * current streak) and tag it with lighthearted, positive/neutral labels
+ * (Heater, Win Streak, Bounce Back, Up Session, Coin Flip).
  *
  * Riot's match-v5 API does NOT expose per-game LP changes, so net LP is an
  * estimate (a flat average per win/loss) and is always labelled as such.
@@ -247,32 +247,6 @@ function computeTags(
         description: "Won right after a loss, recovered the tilt.",
       });
     }
-  } else if (streakType === "L") {
-    if (streakLen >= 4) {
-      tags.push({
-        id: "on-tilt",
-        label: "On Tilt",
-        icon: "🪫",
-        tone: "bad",
-        description: `${streakLen} straight losses, consider a break.`,
-      });
-    } else if (streakLen >= 3) {
-      tags.push({
-        id: "chain-loser",
-        label: "Chain Loser",
-        icon: "⛓",
-        tone: "bad",
-        description: `${streakLen} losses in a row.`,
-      });
-    } else if (streakLen === 2) {
-      tags.push({
-        id: "cold-streak",
-        label: "Cold Streak",
-        icon: "❄",
-        tone: "bad",
-        description: "Two losses back to back.",
-      });
-    }
   }
 
   // ── Pattern / shape tags ──────────────────────────────────────────────────
@@ -295,14 +269,6 @@ function computeTags(
         icon: "✦",
         tone: "good",
         description: `Net positive: ${wins}W ${losses}L.`,
-      });
-    } else if (losses >= wins * 2) {
-      tags.push({
-        id: "down-session",
-        label: "Down Session",
-        icon: "✕",
-        tone: "bad",
-        description: `Net negative: ${wins}W ${losses}L.`,
       });
     }
   }

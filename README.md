@@ -1,6 +1,5 @@
 # <span style="color:#c8aa6e">Ry</span>ot
 
-
 **Open-source League of Legends companion - OP.GG-style stats · Porofessor-style live-game scout · Blitz-style in-game overlay. Self-hostable for you and your friends.**
 
 Ryot is a League companion I built because every other one eventually wanted my
@@ -13,7 +12,7 @@ and a few friends and it gets out of the way.
 ## Features
 
 | Feature                   | Description                                                                                                                                                                                                                                                                                                                                                      |
-|---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Summoner Search**       | Look up any player by Riot ID (e.g. `Faker#KR1`) across all regions.                                                                                                                                                                                                                                                                                             |
 | **Profile & Ranked**      | Profile icon, summoner level, Solo/Duo & Flex rank + LP, winrate.                                                                                                                                                                                                                                                                                                |
 | **Match History**         | Recent 10 matches with champion, KDA, CS, items, duration, and both team rosters.                                                                                                                                                                                                                                                                                |
@@ -57,7 +56,7 @@ ryot/
 ### Prerequisites
 
 | Tool           | Version                                         |
-|----------------|-------------------------------------------------|
+| -------------- | ----------------------------------------------- |
 | Node.js        | ≥ 20                                            |
 | pnpm           | ≥ 9                                             |
 | A Riot API key | [Get one here](https://developer.riotgames.com) |
@@ -99,7 +98,7 @@ pnpm start         # launch Electron overlay
 ```
 
 | Shortcut       | Action                                                |
-|----------------|-------------------------------------------------------|
+| -------------- | ----------------------------------------------------- |
 | `Ctrl+Shift+O` | Toggle click-through (interact with overlay controls) |
 | `Ctrl+Shift+H` | Hide / show overlay                                   |
 
@@ -127,7 +126,7 @@ RYOT_URL=https://ryot.example.com RYOT_API_URL=https://api.ryot.example.com pnpm
 ```
 
 | Shortcut       | Action                                                               |
-|----------------|----------------------------------------------------------------------|
+| -------------- | -------------------------------------------------------------------- |
 | `Ctrl+Shift+O` | Overlay: toggle click-through                                        |
 | `Ctrl+Shift+H` | Overlay: hide / show                                                 |
 | `Ctrl+Shift+S` | Open Settings (Ryot URL, default Riot ID, pre-game monitor, toggles) |
@@ -165,7 +164,7 @@ docker compose up -d --build
 ### Environment Variables
 
 | Variable               | Default                 | Description                                                                    |
-|------------------------|-------------------------|--------------------------------------------------------------------------------|
+| ---------------------- | ----------------------- | ------------------------------------------------------------------------------ |
 | `RIOT_API_KEY`         | _(required)_            | Your Riot API key.                                                             |
 | `DEFAULT_REGION`       | `na1`                   | Fallback region for the backend.                                               |
 | `PORT`                 | `4000`                  | Server port.                                                                   |
@@ -183,7 +182,7 @@ docker compose up -d --build
 ## Riot API Keys
 
 | Type            | Expires    | Rate Limit                | Best For                                 |
-|-----------------|------------|---------------------------|------------------------------------------|
+| --------------- | ---------- | ------------------------- | ---------------------------------------- |
 | **Development** | Every 24 h | 20 req / 1 s, 100 / 2 min | Quick testing                            |
 | **Personal**    | Never      | 20 req / 1 s, 100 / 2 min | You & friends long-term                  |
 | **Production**  | Never      | Higher limits             | Public app (requires full Riot approval) |
@@ -217,5 +216,7 @@ pnpm clean           # remove dist / .next / caches
 ## License
 
 MIT - see [LICENSE](./LICENSE).
+
+This project is a personal open-source project and is not affiliated with, endorsed by, or sponsored by any employer.
 
 > **Ryot** isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games and all associated properties are trademarks or registered trademarks of Riot Games, Inc.

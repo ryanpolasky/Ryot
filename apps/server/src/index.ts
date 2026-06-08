@@ -193,7 +193,9 @@ app.get("/api/status", async () => {
           ? "Builds and tier data flowing."
           : ugg.servingStale
             ? `Serving cached data. Last error: ${ugg.lastError}`
-            : `Down: ${ugg.lastError}`;
+            : ugg.status === "degraded"
+              ? "u.gg is rate-limiting us; serving cached builds and tier data."
+              : `Down: ${ugg.lastError}`;
       components.push({
         id: "ugg",
         label: "u.gg data (builds, tier list)",
@@ -421,11 +423,9 @@ app.get<{ Querystring: { champions: string } }>(
         .map((s) => s.trim())
         .filter(Boolean);
       if (keys.length !== 5)
-        return reply
-          .code(400)
-          .send({
-            error: "Provide exactly 5 champion keys (comma-separated).",
-          });
+        return reply.code(400).send({
+          error: "Provide exactly 5 champion keys (comma-separated).",
+        });
       return await predictLanes(keys);
     } catch (err) {
       return handle(reply, err);

@@ -7,11 +7,15 @@ const KEY = "ryot.theme";
 export type ChampionTheme = {
   id: string;
   name: string;
+  /** Skin number the theme is built from (0 / omitted = base skin). */
+  skinNum?: number;
+  /** Display name of the chosen skin, for the picker UI. */
+  skinName?: string;
   /** "r g b" channels for --gold-rgb (matches the design system var format). */
   accent: string;
   /** "r g b" channels for --gold-2-rgb (lighter hover variant). */
   accent2: string;
-  /** Data Dragon splash URL used for the page backdrop. */
+  /** Splash URL used for the page backdrop. */
   splash: string;
 };
 

@@ -4,6 +4,59 @@ All notable changes to Ryot are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-06-07
+
+Polish pass plus several new web features.
+
+### Added
+
+- Champion search typeahead: find a champion by name from a dropdown (with
+  portraits) on the home page and build pages.
+- Champion builds browser at `/build`: a searchable grid of every champion,
+  instead of defaulting to a single champion.
+- Skin-aware site theming: theme the whole site with a specific champion skin,
+  from a skin picker in Settings or each build page's "Theme site" dropdown.
+- Recent-search suggestions in the summoner search, stored only in your browser,
+  with an opt-out in Settings.
+- "Me": mark your own account (in Settings or via the "This is me" button on any
+  profile) to pin it to the top of suggestions. In the desktop app, your account
+  and recently played-with players are detected automatically via the League
+  Client.
+- Unified search: one box on the home page searches both Riot IDs and
+  champions, with an alternating SUMMONER / CHAMPION accent word.
+
+### Changed
+
+- Champion splash art on share cards and the site theme backdrop now uses
+  Community Dragon's centered art (sharper, better framed).
+- The status page reports a u.gg rate-limit as a transient "degraded" state that
+  self-heals, instead of a stuck "down".
+- Tighter, sharper champion grid on the builds browser, and consistent
+  match-history row columns (no wrapped labels).
+
+### Removed
+
+- The post-game "Punching Bag" award and the negative session tags (On Tilt,
+  Chain Loser, Cold Streak, Down Session): player-facing labels are now positive
+  or neutral only.
+
+### Fixed
+
+- Match history now reaches older games and ARAMs: "Load more" works without a
+  personal key (the shared key paginates).
+- Champion and mastery icons on profiles now load for multi-word champions
+  (e.g. Miss Fortune).
+- The champion-theme dropdown scrolls instead of closing, and dropdown chevrons
+  are no longer cramped against the edge.
+- The top ticker no longer jumps when it loops.
+
+### Notes
+
+- New FAQ entries explain why Windows / macOS flag the unsigned app as "unsafe"
+  and what marking a profile as "me" does.
+- Added a personal open-source project / no-employer-affiliation disclaimer
+  (README + About).
+
 ## [1.0.0] - 2026-06-07
 
 First stable release. Ryot is a self-hostable, open-source League of Legends
@@ -65,4 +118,5 @@ builds, a champ-select pre-game suite, and a Blitz-style in-game overlay.
 - Not endorsed by Riot Games. The overlay (Live Client Data API) and desktop
   LCU integration are ToS-compliant, with no memory reading.
 
+[1.0.1]: https://github.com/ryanpolasky/ryot/releases/tag/v1.0.1
 [1.0.0]: https://github.com/ryanpolasky/ryot/releases/tag/v1.0.0

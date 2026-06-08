@@ -303,23 +303,7 @@ export function computeMatchAwards(match: MatchDTO): MatchAwards {
     );
   }
 
-  // Punching Bag: most deaths (only when it's egregious). Porofessor floats it.
-  const deaths = maxBy(d, (x) => x.p.deaths);
-  if (deaths && deaths.p.deaths >= 8) {
-    add(
-      deaths,
-      {
-        id: "punching-bag",
-        label: "Punching Bag",
-        icon: "💀",
-        tone: "bad",
-        description: "Fed a little too generously.",
-      },
-      `${deaths.p.deaths} deaths`,
-    );
-  }
-
-  // Order: MVP/uncarriable first, then good, then neutral, then bad.
+  // Order: MVP/uncarriable first, then good, then neutral.
   const toneRank: Record<AwardTone, number> = {
     mvp: 0,
     good: 1,

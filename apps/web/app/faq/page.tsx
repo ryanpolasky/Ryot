@@ -54,6 +54,12 @@ const GROUPS: { title: string; qa: { q: string; a: string[] }[] }[] = [
           "Yes, MIT-licensed. You can read every line on GitHub, confirm there's nothing sketchy, and self-host your own copy if you'd rather not trust mine.",
         ],
       },
+      {
+        q: 'What does marking a profile as "me" do?',
+        a: [
+          "Almost nothing, by design. It pins your own profile to the top of your search suggestions and is stored only in your browser. It doesn't claim or verify the account, doesn't change anything about the profile, and isn't sent anywhere, it's purely a shortcut so you can jump to your own stats faster.",
+        ],
+      },
     ],
   },
   {
@@ -98,6 +104,18 @@ const GROUPS: { title: string; qa: { q: string; a: string[] }[] }[] = [
         q: "Is the overlay against Riot's rules?",
         a: [
           "No. It only reads League's local Live Client Data API on your own machine to draw timers and stats, and it doesn't automate anything or give an unfair advantage. Ryot deliberately avoids ToS-risky things like auto-accept or auto-dodge.",
+        ],
+      },
+      {
+        q: "Why does Windows say the app isn't safe?",
+        a: [
+          "Because I didn't pay for a code-signing certificate. Windows SmartScreen flags any installer that isn't signed by a recognized publisher, regardless of what's actually inside it. Click \"More info\" then \"Run anyway\" to continue. If you'd rather not take my word for it, the whole thing is open source: read it, or build the installer yourself.",
+        ],
+      },
+      {
+        q: "Why does macOS say the app isn't safe?",
+        a: [
+          "Same idea: the app isn't notarized with a paid Apple Developer ID, so Gatekeeper gets nervous about an \"unidentified developer.\" Right-click (or Control-click) the app and choose Open, or allow it under System Settings → Privacy & Security. As always, the source is right there if you'd rather verify it first.",
         ],
       },
     ],

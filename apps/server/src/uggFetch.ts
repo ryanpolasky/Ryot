@@ -2,7 +2,7 @@
  * Shared u.gg fetch wrapper. Validates the response shape and records health,
  * so a markup/format drift surfaces a clear message instead of a cryptic crash.
  */
-import { recordOk, recordError } from "./uggHealth.js";
+import { recordOk, recordError, recordRateLimited } from "./uggHealth.js";
 
 export class UggFetchError extends Error {
   constructor(message: string) {
@@ -31,7 +31,9 @@ export async function fetchUgg<T>(
 
   if (!res.ok) {
     const msg = `u.gg ${label} returned ${res.status}`;
-    recordError(msg, false);
+    // 429 = u.gg is up but throttling our burst: transient/degraded, not down.
+    if (res.status === 429) recordRateLimited(msg);
+    else recordError(msg, false);
     throw new UggFetchError(msg);
   }
 

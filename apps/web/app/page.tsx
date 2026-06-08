@@ -1,3 +1,4 @@
+import RotatingWord from "@/components/RotatingWord";
 import SearchBar from "@/components/SearchBar";
 import Link from "next/link";
 
@@ -33,7 +34,12 @@ export default function HomePage() {
 
         <h1 className="font-display text-[16vw] leading-[0.82] tracking-tightest text-bone sm:text-[11rem]">
           LOOK UP <br />
-          ANY <span className="text-gold">SUMMONER</span>
+          ANY{" "}
+          <RotatingWord
+            words={["SUMMONER", "CHAMPION"]}
+            className="text-gold"
+          />
+          <span className="sr-only">summoner or champion</span>
         </h1>
 
         <p className="mt-6 max-w-xl font-sans text-sm text-muted">
@@ -44,7 +50,8 @@ export default function HomePage() {
         <div className="mt-7 max-w-2xl">
           <SearchBar autoFocus />
           <p className="mt-3 font-mono text-[11px] uppercase tracking-widest text-faint">
-            Enter a Riot ID // <span className="text-muted">Name#TAG</span>
+            Riot ID <span className="text-muted">Name#TAG</span> or a champion
+            name
           </p>
         </div>
       </section>
@@ -68,7 +75,7 @@ export default function HomePage() {
       </section>
 
       <div className="mt-10 flex flex-wrap items-center gap-4">
-        <Link href="/build/Aatrox" className="btn-primary">
+        <Link href="/build" className="btn-primary">
           Browse Champion Builds →
         </Link>
         <span className="font-mono text-[11px] uppercase tracking-widest text-faint">

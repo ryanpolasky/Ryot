@@ -1,4 +1,4 @@
-import { accentFromSplash, splashUrl } from "@/lib/accent";
+import { accentFromSplash, splashArtUrl, splashUrl } from "@/lib/accent";
 import { OG_SIZE, RyotOgCard, loadOgFonts } from "@/lib/og";
 import { fetchChampions, getLatestVersion } from "@lc/shared";
 import { ImageResponse } from "next/og";
@@ -38,18 +38,17 @@ export async function GET(
 ) {
   const { champion } = await params;
   const { id, name } = await resolveChampion(decodeURIComponent(champion));
-  const splash = splashUrl(id);
 
   const [fonts, accent] = await Promise.all([
     loadOgFonts(),
-    accentFromSplash(splash),
+    accentFromSplash(splashUrl(id)),
   ]);
 
   return new ImageResponse(
     RyotOgCard({
       eyebrow: `${name} Build`,
       tagline: "Best runes, items & counters",
-      splash,
+      splash: splashArtUrl(id),
       accent,
     }),
     { ...OG_SIZE, fonts },

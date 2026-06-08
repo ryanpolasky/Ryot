@@ -7,7 +7,7 @@ import { createPortal } from "react-dom";
 
 const LINKS: { href: string; label: string }[] = [
   { href: "/", label: "Search" },
-  { href: "/build/Aatrox", label: "Builds" },
+  { href: "/build", label: "Builds" },
   { href: "/tier-list", label: "Tier List" },
   { href: "/download", label: "Download" },
   { href: "/settings", label: "Settings" },

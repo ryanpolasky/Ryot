@@ -34,7 +34,7 @@ const config: Config = {
       keyframes: {
         marquee: {
           from: { transform: "translateX(0)" },
-          to: { transform: "translateX(-50%)" },
+          to: { transform: "translateX(-100%)" },
         },
         riseIn: {
           from: { opacity: "0", transform: "translateY(10px)" },
@@ -49,7 +49,7 @@ const config: Config = {
         },
       },
       animation: {
-        marquee: "marquee 28s linear infinite",
+        marquee: "marquee 56s linear infinite",
         riseIn: "riseIn 0.5s cubic-bezier(0.16,1,0.3,1) both",
         blink: "blink 1.4s steps(2, start) infinite",
         shimmer: "shimmer 1.6s infinite",

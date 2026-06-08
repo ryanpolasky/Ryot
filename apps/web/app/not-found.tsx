@@ -22,7 +22,7 @@ export default function NotFound() {
           <Link href="/tier-list" className="btn-outline">
             Tier List
           </Link>
-          <Link href="/build/Aatrox" className="btn-outline">
+          <Link href="/build" className="btn-outline">
             Champion Builds
           </Link>
         </div>

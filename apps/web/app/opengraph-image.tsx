@@ -1,4 +1,4 @@
-import { accentFromSplash, splashUrl } from "@/lib/accent";
+import { accentFromSplash, splashArtUrl, splashUrl } from "@/lib/accent";
 import { OG_CONTENT_TYPE, OG_SIZE, RyotOgCard, loadOgFonts } from "@/lib/og";
 import { SITE_CHAMPION, SITE_NAME } from "@/lib/site";
 import { ImageResponse } from "next/og";
@@ -16,10 +16,9 @@ export const alt = `${SITE_NAME}: no-ads League of Legends companion`;
 // own). Reuses the shared champion card with a homepage tagline; swap the
 // featured champion via SITE_CHAMPION in lib/site.ts.
 export default async function OpenGraphImage() {
-  const splash = splashUrl(SITE_CHAMPION);
   const [fonts, accent] = await Promise.all([
     loadOgFonts(),
-    accentFromSplash(splash),
+    accentFromSplash(splashUrl(SITE_CHAMPION)),
   ]);
 
   return new ImageResponse(
@@ -27,7 +26,7 @@ export default async function OpenGraphImage() {
       eyebrow: "League of Legends Companion",
       tagline:
         "Match history, ranked stats, a live-game scout & champion builds.",
-      splash,
+      splash: splashArtUrl(SITE_CHAMPION),
       accent,
     }),
     { ...size, fonts },

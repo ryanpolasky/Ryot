@@ -53,7 +53,7 @@ export default function MatchRow({
       }`}
     >
       <div className="flex w-24 shrink-0 flex-col justify-center sm:w-28">
-        <div className="font-mono text-[10px] uppercase tracking-wider text-muted">
+        <div className="truncate font-mono text-[10px] uppercase tracking-wider text-muted">
           {queueName(match.info.queueId)}
         </div>
         <div
@@ -61,7 +61,7 @@ export default function MatchRow({
         >
           {win ? "Victory" : "Defeat"}
         </div>
-        <div className="stat mt-0.5 text-[11px] text-faint">
+        <div className="stat mt-0.5 truncate text-[11px] text-faint">
           {timeAgo(match.info.gameCreation)} ·{" "}
           {duration(match.info.gameDuration)}
         </div>
@@ -120,7 +120,7 @@ export default function MatchRow({
         </div>
       </div>
 
-      <div className="flex min-w-0 flex-col justify-center">
+      <div className="flex min-w-[8rem] flex-col justify-center">
         <div className="stat text-lg font-bold text-bone">
           {me.kills} <span className="text-faint">/</span>{" "}
           <span className="text-loss">{me.deaths}</span>{" "}

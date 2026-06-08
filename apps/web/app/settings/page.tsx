@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import ByokSettings from "@/components/ByokSettings";
 import ChampionThemePicker from "@/components/ChampionThemePicker";
+import MeSettings from "@/components/MeSettings";
+import RecentsSettings from "@/components/RecentsSettings";
 
 export const metadata: Metadata = {
   title: "Settings",
@@ -45,6 +47,10 @@ export default function SettingsPage() {
       </div>
 
       <ChampionThemePicker />
+
+      <MeSettings />
+
+      <RecentsSettings />
     </div>
   );
 }

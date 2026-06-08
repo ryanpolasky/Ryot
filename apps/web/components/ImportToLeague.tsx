@@ -1,28 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import "@/lib/desktop"; // window.ryot global typing
 
 // desktop-only "import to league" controls; only render inside the ryot desktop app
-
-interface RyotBridge {
-  isDesktop: boolean;
-  importRunes: (p: {
-    name: string;
-    primaryStyleId: number;
-    subStyleId: number;
-    selectedPerkIds: number[];
-  }) => Promise<{ ok: true }>;
-  importSpells: (p: {
-    spell1Id: number;
-    spell2Id: number;
-  }) => Promise<{ ok: true }>;
-}
-
-declare global {
-  interface Window {
-    ryot?: RyotBridge;
-  }
-}
 
 interface Props {
   champion: string;

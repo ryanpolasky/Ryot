@@ -66,7 +66,7 @@ export default function BuildClient({
           const label = RANKS.find((r) => r.value === e.target.value)?.label ?? currentRank;
           navigate(currentRole, label);
         }}
-        className="field w-full cursor-pointer py-2 font-mono text-xs uppercase tracking-wider sm:ml-auto sm:w-auto"
+        className="select w-full py-2 font-mono text-xs uppercase tracking-wider sm:ml-auto sm:w-auto"
         aria-label="Rank filter"
       >
         {RANKS.map((r) => (

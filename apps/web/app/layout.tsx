@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Anton, Space_Grotesk, Space_Mono } from "next/font/google";
 import Link from "next/link";
 import MobileNav from "@/components/MobileNav";
+import DesktopSelfSync from "@/components/DesktopSelfSync";
 import {
   SITE_URL,
   SITE_NAME,
@@ -115,6 +116,7 @@ export default function RootLayout({
         <a href="#main" className="skip-link">
           Skip to content
         </a>
+        <DesktopSelfSync />
         {/* Ticker */}
         <div className="marquee border-b border-line bg-surface/60 py-1.5 text-[10px] uppercase tracking-[0.25em] text-faint">
           {[0, 1].map((dup) => (
@@ -152,7 +154,7 @@ export default function RootLayout({
                   Search
                 </Link>
                 <Link
-                  href="/build/Aatrox"
+                  href="/build"
                   className="px-3 py-2 transition-colors hover:text-bone"
                 >
                   Builds

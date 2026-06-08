@@ -18,6 +18,13 @@ export interface DDragonChampion {
   tags?: string[];
 }
 
+export interface DDragonSkin {
+  /** Skin number within the champion (0 = base/default). */
+  num: number;
+  /** Display name; the base skin is "default" in Data Dragon. */
+  name: string;
+}
+
 export interface DDragonItem {
   name: string;
   description: string;
@@ -99,6 +106,32 @@ export async function fetchChampions(
   }));
 }
 
+/**
+ * A champion's real skins (base + named skins). Chromas are filtered out: they
+ * carry a `parentSkin` and have no distinct splash art (the CDN 403s), so they
+ * can't back a theme. Requires the per-champion file, not the summary list.
+ */
+export async function fetchChampionSkins(
+  version: string,
+  id: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<DDragonSkin[]> {
+  const res = await fetchImpl(
+    `${DDRAGON_BASE}/cdn/${version}/data/en_US/champion/${id}.json`,
+  );
+  if (!res.ok)
+    throw new Error(`Failed to fetch skins for ${id}: ${res.status}`);
+  const json = (await res.json()) as {
+    data: Record<
+      string,
+      { skins?: { num: number; name: string; parentSkin?: number }[] }
+    >;
+  };
+  return (json.data[id]?.skins ?? [])
+    .filter((s) => !s.parentSkin)
+    .map((s) => ({ num: s.num, name: s.name }));
+}
+
 export async function fetchItems(
   version: string,
   fetchImpl: typeof fetch = fetch,
@@ -129,6 +162,12 @@ export const ddragonImg = {
   /** champFile is the Data Dragon image.full value, e.g. "Aatrox.png". */
   champion: (version: string, champFile: string) =>
     `${DDRAGON_BASE}/cdn/${version}/img/champion/${champFile}`,
+  /** Full splash art for a skin (skinNum 0 = base). Version-independent. */
+  champSplash: (championId: string, skinNum = 0) =>
+    `${DDRAGON_BASE}/cdn/img/champion/splash/${championId}_${skinNum}.jpg`,
+  /** Portrait loading art for a skin; handy for small thumbnails. */
+  champLoading: (championId: string, skinNum = 0) =>
+    `${DDRAGON_BASE}/cdn/img/champion/loading/${championId}_${skinNum}.jpg`,
   item: (version: string, itemId: number) =>
     itemId > 0 ? `${DDRAGON_BASE}/cdn/${version}/img/item/${itemId}.png` : null,
   summonerSpell: (version: string, spellId: number) => {

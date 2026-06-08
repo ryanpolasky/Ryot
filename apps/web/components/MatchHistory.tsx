@@ -155,7 +155,7 @@ export default function MatchHistory({
           <select
             value={champ}
             onChange={(e) => setChamp(e.target.value)}
-            className="field w-full cursor-pointer py-2 font-mono text-xs uppercase tracking-wider sm:ml-auto sm:w-auto"
+            className="select w-full py-2 font-mono text-xs uppercase tracking-wider sm:ml-auto sm:w-auto"
             aria-label="Filter by champion"
           >
             <option value="">All champions</option>
@@ -195,22 +195,21 @@ export default function MatchHistory({
         </div>
       )}
 
-      <div className="mt-4 flex justify-center">
-        {!done && byok && (
+      <div className="mt-4 flex flex-col items-center gap-2">
+        {!done && (
           <button onClick={loadMore} disabled={loading} className="btn-outline">
             {loading ? "Loading\u2026" : "Load more"}
           </button>
         )}
         {!done && !byok && (
-          <p className="text-center font-mono text-[11px] uppercase tracking-widest text-faint">
-            Showing your 20 most recent games &middot;{" "}
+          <p className="text-center font-mono text-[10px] uppercase tracking-widest text-faint">
             <Link
               href="/settings"
               className="text-gold/80 transition hover:text-gold"
             >
               Add your Riot key
             </Link>{" "}
-            for full history
+            to page faster
           </p>
         )}
         {done && matches.length > PAGE_SIZE && (

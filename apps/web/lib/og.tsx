@@ -53,9 +53,9 @@ export function RyotOgCard({
   splash: string;
   accent: string;
 }) {
-  // fake object-fit:cover for the 1215x717 splash at 1200x630
+  // fake object-fit:cover for the 1280x720 centered splash at 1200x630
   const imgW = 1200;
-  const imgH = Math.round((717 / 1215) * 1200); // 708
+  const imgH = Math.round((720 / 1280) * 1200); // 675
 
   // tagline gets a soft hint of the champ accent
   const taglineColor = mixHex(accent, BONE, 0.55);
