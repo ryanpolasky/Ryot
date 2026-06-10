@@ -27,15 +27,8 @@ const SUMMONER_SPELL_NAME: Record<number, string> = {
 };
 import { cache } from "../cache.js";
 import { getChampionMap, getVersion } from "../ddragonStore.js";
-import { fetchUgg } from "../uggFetch.js";
+import { fetchOverview } from "../uggSource.js";
 import { ServiceError } from "./riotService.js";
-
-// ── u.gg constants ───────────────────────────────────────────────────────────
-
-const UGG_OVERVIEW_URL = "https://stats2.u.gg/lol/1.5/overview";
-const UGG_API_VERSION = "1.5.0";
-
-const UGG_REGION_WORLD = "12";
 
 /** u.gg role ids. */
 const ROLE_MAP: Record<string, string> = {
@@ -170,7 +163,6 @@ export async function getRecommendedBuild(
   rankParam?: string,
 ): Promise<RecommendedBuild> {
   const version = await getVersion();
-  const patch = version.split(".").slice(0, 2).join("_"); // "16.11.1" → "16_11"
 
   // Resolve champion id (numeric) from name/key.
   const champMap = await getChampionMap();
@@ -194,16 +186,8 @@ export async function getRecommendedBuild(
   if (!champId)
     throw new ServiceError(404, `No champion called "${championKey}".`);
 
-  // Fetch u.gg overview (cached 30 min, stale-on-error via cache).
-  type UggData = Record<string, Record<string, [unknown[], string]>>;
-  const uggData = await cache.wrap<UggData>(
-    `ugg:overview:${patch}:${champId}`,
-    1800,
-    async () => {
-      const url = `${UGG_OVERVIEW_URL}/${patch}/ranked_solo_5x5/${champId}/${UGG_API_VERSION}.json`;
-      return fetchUgg<UggData>(url, UGG_REGION_WORLD, `build ${champName}`);
-    },
-  );
+  // u.gg overview: dataset-first (cache + weekly crawl), live fallback.
+  const uggData = await fetchOverview(champId);
 
   // Resolve rank.
   const rankId = rankParam ? (RANK_MAP[rankParam] ?? rankParam) : "17";

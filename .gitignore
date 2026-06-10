@@ -16,6 +16,9 @@ coverage/
 release/
 dist-electron/
 
+# Locally-generated u.gg crawl output (published to a GitHub release by CI).
+apps/server/data/
+
 # IDE
 .idea/
 .vscode/

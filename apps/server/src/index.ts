@@ -8,6 +8,7 @@ import { config, hasApiKey } from "./config.js";
 import { isLoopbackOrPrivate } from "./net.js";
 import { getChampionMap, getVersion } from "./ddragonStore.js";
 import { getRecommendedBuild } from "./services/buildService.js";
+import { getDatasetInfo, startDatasetRefresh } from "./uggDataset.js";
 import { getUggHealth } from "./uggHealth.js";
 import {
   getChampionMatchups,
@@ -184,44 +185,66 @@ app.get("/api/status", async () => {
       detail: riotHealth.detail,
     });
 
-    // u.gg health: prefer observed state from real traffic (recorded by
-    // uggFetch.ts), fall back to a live probe on cold start.
+    // u.gg data: builds/tier/meta come from the weekly pre-crawled dataset
+    // (uggDataset.ts), with live u.gg as a fallback. Report whichever is
+    // actually serving data so a blocked host still shows "operational".
+    const ds = getDatasetInfo();
     const ugg = getUggHealth();
-    if (ugg.lastOk !== null || ugg.lastErrorAt !== null) {
-      const detail =
-        ugg.status === "operational"
-          ? "Builds and tier data flowing."
-          : ugg.servingStale
-            ? `Serving cached data. Last error: ${ugg.lastError}`
-            : ugg.status === "degraded"
-              ? "u.gg is rate-limiting us; serving cached builds and tier data."
-              : `Down: ${ugg.lastError}`;
-      components.push({
-        id: "ugg",
-        label: "u.gg data (builds, tier list)",
-        status: ugg.status,
-        detail,
-      });
+    const DAY_MS = 86_400_000;
+    const datasetFresh = ds.loaded && ds.ageMs < 10 * DAY_MS;
+    const ageDays = Number.isFinite(ds.ageMs)
+      ? Math.floor(ds.ageMs / DAY_MS)
+      : Infinity;
+    const ageLabel =
+      ageDays <= 0
+        ? "today"
+        : ageDays === 1
+          ? "1 day ago"
+          : `${ageDays} days ago`;
+    const patchLabel = ds.patch?.replace("_", ".") ?? "?";
+
+    let uggStatus: StatusComponent["status"];
+    let uggDetail: string;
+    if (datasetFresh) {
+      uggStatus = "operational";
+      uggDetail = `Weekly dataset: patch ${patchLabel}, crawled ${ageLabel} (${ds.champions} champions).`;
+    } else if (ugg.status === "operational" && ugg.lastOk !== null) {
+      uggStatus = "operational";
+      uggDetail = "Live u.gg data flowing.";
+    } else if (ds.loaded) {
+      uggStatus = "degraded";
+      uggDetail =
+        `Dataset is ${ageDays} days old; the weekly crawl may be failing.` +
+        (ds.lastError ? ` Last refresh error: ${ds.lastError}` : "");
+    } else if (ugg.lastOk !== null || ugg.lastErrorAt !== null) {
+      uggStatus = ugg.status;
+      uggDetail = ugg.servingStale
+        ? `Serving cached data. Last error: ${ugg.lastError}`
+        : ugg.status === "degraded"
+          ? "u.gg is rate-limiting us; serving cached data."
+          : `No dataset loaded and live u.gg is unreachable: ${ugg.lastError}`;
     } else {
-      // Cold start: no traffic yet, do a cheap probe.
+      // Cold start: no dataset and no observed traffic, do a cheap probe.
       try {
         const probe = await getRecommendedBuild("Aatrox");
         const ok = (probe.games ?? 0) > 0;
-        components.push({
-          id: "ugg",
-          label: "u.gg data (builds, tier list)",
-          status: ok ? "operational" : "degraded",
-          detail: ok ? "Builds and tier data flowing." : "Returned no data.",
-        });
+        uggStatus = ok ? "operational" : "degraded";
+        uggDetail = ok
+          ? "Builds and tier data flowing."
+          : "Returned no data.";
       } catch {
-        components.push({
-          id: "ugg",
-          label: "u.gg data (builds, tier list)",
-          status: "down",
-          detail: "Scrape failed or is being rate-limited. Try again shortly.",
-        });
+        uggStatus = "down";
+        uggDetail = ds.lastError
+          ? `No build dataset (${ds.lastError}) and live u.gg unreachable.`
+          : "No build dataset loaded and live u.gg unreachable.";
       }
     }
+    components.push({
+      id: "ugg",
+      label: "u.gg data (builds, tier list)",
+      status: uggStatus,
+      detail: uggDetail,
+    });
 
     // Severity is honest about what's actually broken. A "major outage" means
     // the app is broadly unusable: Data Dragon down (no champion art anywhere)
@@ -475,6 +498,9 @@ app.get("/api/aram/tier-list", async (_req, reply) => {
     return handle(reply, err);
   }
 });
+
+// Warm the pre-crawled u.gg dataset and keep it refreshed in the background.
+startDatasetRefresh();
 
 app
   .listen({ port: config.port, host: "0.0.0.0" })

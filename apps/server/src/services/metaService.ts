@@ -18,13 +18,11 @@ import {
   getChampionMap,
   getVersion,
 } from "../ddragonStore.js";
-import { fetchUgg } from "../uggFetch.js";
-
-// ── u.gg constants (shared with buildService) ────────────────────────────────
-
-const UGG_BASE = "https://stats2.u.gg/lol/1.5";
-const UGG_API_VERSION = "1.5.0";
-const UGG_REGION_WORLD = "12";
+import {
+  fetchAramOverview,
+  fetchMatchups,
+  fetchOverview,
+} from "../uggSource.js";
 
 const ROLE_LABELS: Record<string, string> = {
   "1": "Jungle",
@@ -86,57 +84,6 @@ async function champMeta(champId: number) {
     name: c.name,
     icon: ddragonImg.champion(version, c.image.full),
   };
-}
-
-// ── u.gg fetch wrappers ──────────────────────────────────────────────────────
-
-type OverviewData = Record<string, Record<string, [unknown[], string]>>;
-
-async function fetchOverview(champId: string): Promise<OverviewData> {
-  const patch = await patchString();
-  return cache.wrap(`ugg:overview:${patch}:${champId}`, 1800, async () => {
-    const url = `${UGG_BASE}/overview/${patch}/ranked_solo_5x5/${champId}/${UGG_API_VERSION}.json`;
-    return fetchUgg<OverviewData>(url, UGG_REGION_WORLD, `overview ${champId}`);
-  });
-}
-
-/**
- * ARAM overview (Howling Abyss, queue 450). u.gg serves it under the
- * `normal_aram` queue with a single rank bucket ("8" = overall) and a single
- * "role" key ("6"). Same nested [block][6] = [wins, games] shape as SR.
- */
-async function fetchAramOverview(champId: string): Promise<OverviewData> {
-  const patch = await patchString();
-  return cache.wrap(`ugg:aram:${patch}:${champId}`, 1800, async () => {
-    const url = `${UGG_BASE}/overview/${patch}/normal_aram/${champId}/${UGG_API_VERSION}.json`;
-    // u.gg rate-limits bursts (429); retry a few times with backoff so a full
-    // tier-list pass still completes.
-    let lastErr: Error | null = null;
-    for (let attempt = 0; attempt < 4; attempt++) {
-      try {
-        return await fetchUgg<OverviewData>(
-          url,
-          UGG_REGION_WORLD,
-          `aram ${champId}`,
-        );
-      } catch (err) {
-        lastErr = err as Error;
-        if (!lastErr.message.includes("429")) break;
-        await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
-      }
-    }
-    throw lastErr ?? new Error(`u.gg aram failed`);
-  });
-}
-
-type MatchupData = Record<string, Record<string, number[][]>>;
-
-async function fetchMatchups(champId: string): Promise<MatchupData> {
-  const patch = await patchString();
-  return cache.wrap(`ugg:matchups:${patch}:${champId}`, 1800, async () => {
-    const url = `${UGG_BASE}/matchups/${patch}/ranked_solo_5x5/${champId}/${UGG_API_VERSION}.json`;
-    return fetchUgg<MatchupData>(url, UGG_REGION_WORLD, `matchups ${champId}`);
-  });
 }
 
 // ── Public API ───────────────────────────────────────────────────────────────
