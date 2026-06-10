@@ -252,7 +252,7 @@ async function loadItemCosts() {
 
 // ── recommended build (Feature 3/4) ──────────────────────────────────────────
 // Only successful builds are cached (keyed by champion + rank); failures stay
-// uncached and guarded by buildInFlight, so a transient backend/u.gg hiccup
+// uncached and guarded by buildInFlight, so a transient backend hiccup
 // retries on the next tick instead of hiding the panel for the whole game.
 const buildCache = new Map<string, OverlayBuild>();
 const buildInFlight = new Set<string>();

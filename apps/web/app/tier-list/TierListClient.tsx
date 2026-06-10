@@ -233,7 +233,7 @@ export default function TierListClient() {
       )}
 
       <p className="font-sans text-xs leading-relaxed text-faint">
-        Win rate is exact from community data (u.gg), updated each patch.
+        Win rate is exact, aggregated from ranked match data, updated each patch.
         &quot;Pick %&quot; is a champion&apos;s share of games within its{" "}
         {queue === "aram" ? "queue" : "role"}. Click any champion for its full
         build.

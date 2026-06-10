@@ -8,12 +8,16 @@ const LEVEL: Record<StatusLevel, { label: string; dot: string; text: string }> =
     operational: { label: "Operational", dot: "#5fd07a", text: "text-bone" },
     degraded: { label: "Degraded", dot: "#c8aa6e", text: "text-gold" },
     down: { label: "Down", dot: "#ff4d4d", text: "text-loss" },
+    planned: { label: "Coming soon", dot: "#7c93c3", text: "text-faint" },
   };
 
 const OVERALL_HEADLINE: Record<StatusLevel, string> = {
   operational: "All systems go",
   degraded: "Partial outage",
   down: "Major outage",
+  // The overall status is never "planned"; a single planned component doesn't
+  // degrade the whole system. Mapped for type-completeness only.
+  planned: "All systems go",
 };
 
 function Dot({ color }: { color: string }) {

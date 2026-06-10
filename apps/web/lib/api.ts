@@ -327,7 +327,7 @@ export function getAramTierList(): Promise<AramTierListResult> {
 
 // ── status dashboard ──────────────────────────────────────────────────────────
 
-export type StatusLevel = "operational" | "degraded" | "down";
+export type StatusLevel = "operational" | "degraded" | "down" | "planned";
 
 export interface StatusComponent {
   id: string;

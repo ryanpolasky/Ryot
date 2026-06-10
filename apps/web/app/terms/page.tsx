@@ -24,7 +24,7 @@ const SECTIONS = [
   {
     h: "Provided as-is",
     body: [
-      "Ryot is offered without warranty of any kind. Stats, builds, tier lists, and predictions are sourced from the Riot API and community data (u.gg) and may be incomplete, delayed, or wrong. Don't treat anything here as guaranteed accurate, and don't blame me for that questionable build path.",
+      "Ryot is offered without warranty of any kind. Stats, builds, tier lists, and predictions are sourced from the Riot API and Ryot's own match-data analysis and may be incomplete, delayed, or wrong. Don't treat anything here as guaranteed accurate, and don't blame me for that questionable build path.",
       "The service may go down, change, or disappear at any time. It's run on a small server as a personal project, not a business with an uptime guarantee.",
     ],
   },

@@ -32,6 +32,29 @@ export interface LeagueEntryDTO {
   inactive: boolean;
 }
 
+/** A single ladder entry inside an apex league list (challenger/gm/master). */
+export interface LeagueItemDTO {
+  puuid?: string;
+  summonerId?: string;
+  leaguePoints: number;
+  rank: string;
+  wins: number;
+  losses: number;
+  hotStreak: boolean;
+  veteran: boolean;
+  freshBlood: boolean;
+  inactive: boolean;
+}
+
+/** league-v4 apex league response (challengerleagues/grandmasterleagues/masterleagues). */
+export interface LeagueListDTO {
+  leagueId: string;
+  tier: string; // CHALLENGER | GRANDMASTER | MASTER
+  queue: string; // RANKED_SOLO_5x5 | ...
+  name: string;
+  entries: LeagueItemDTO[];
+}
+
 export interface MatchMetadata {
   matchId: string;
   participants: string[]; // puuids
@@ -82,6 +105,18 @@ export interface ParticipantPerks {
   statPerks: { defense: number; flex: number; offense: number };
 }
 
+/** A drafted/banned champion in a match's team object. */
+export interface TeamBan {
+  championId: number; // -1 when no ban was locked
+  pickTurn: number;
+}
+
+export interface MatchTeam {
+  teamId: number; // 100 | 200
+  win: boolean;
+  bans: TeamBan[];
+}
+
 export interface MatchInfo {
   gameCreation: number;
   gameDuration: number; // seconds
@@ -93,6 +128,8 @@ export interface MatchInfo {
   mapId: number;
   platformId: string;
   participants: MatchParticipant[];
+  /** Per-team draft info (bans). Present on SR matches; absent on some modes. */
+  teams?: MatchTeam[];
 }
 
 export interface MatchDTO {

@@ -21,9 +21,23 @@ const TAG_COLOR: Record<string, string> = {
 
 const ENTRIES: Entry[] = [
   {
-    version: "v1.0.5",
+    version: "v1.0.6",
     date: "June 2026",
     tag: "Latest",
+    changes: [
+      {
+        type: "Improved",
+        text: "Builds, tier lists, and matchups are moving to Ryot's own meta engine, built from Riot's official Match-V5 API. I wasn't comfortable sitting in the ToS grey area of scraping a third-party stats site (u.gg), so I'm doing it the legit way — coming soon while I build it out.",
+      },
+      {
+        type: "Improved",
+        text: "The status page now lists the build engine as 'coming soon' instead of an outage, so nothing reads as broken while it's being built.",
+      },
+    ],
+  },
+  {
+    version: "v1.0.5",
+    date: "June 2026",
     changes: [
       {
         type: "Fixed",

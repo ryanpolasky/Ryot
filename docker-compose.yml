@@ -12,8 +12,19 @@ services:
       # Set true when the API sits behind a reverse proxy / Cloudflare so the
       # rate limiter reads the real client IP from X-Forwarded-For.
       TRUST_PROXY: ${TRUST_PROXY:-false}
+      # Ryot build/meta engine. Off until a production Riot key is in place;
+      # while off, build/tier/meta endpoints report "coming soon".
+      STATS_CRAWL_ENABLED: ${STATS_CRAWL_ENABLED:-false}
+      STATS_CRAWL_PLATFORMS: ${STATS_CRAWL_PLATFORMS:-na1,euw1,kr}
+      STATS_CRAWL_SCOPE: ${STATS_CRAWL_SCOPE:-apex}
+      STATS_MATCHES_PER_PLAYER: ${STATS_MATCHES_PER_PLAYER:-15}
+      STATS_CYCLE_INTERVAL_MIN: ${STATS_CYCLE_INTERVAL_MIN:-360}
+      STATS_SNAPSHOT_PATH: ${STATS_SNAPSHOT_PATH:-data/stats-snapshot.json.gz}
     ports:
       - "4000:4000"
+    # Persist the aggregated build/meta snapshot across restarts.
+    volumes:
+      - stats-data:/app/data
     restart: unless-stopped
 
   web:
@@ -37,3 +48,6 @@ services:
     depends_on:
       - server
     restart: unless-stopped
+
+volumes:
+  stats-data:

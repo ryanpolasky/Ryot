@@ -38,20 +38,27 @@ export const config = {
     spectator: num("CACHE_TTL_SPECTATOR", 20),
     ddragon: num("CACHE_TTL_DDRAGON", 3600),
   },
-  ugg: {
-    // Pre-crawled u.gg dataset (builds/tier/meta/matchups), refreshed weekly by
-    // a GitHub Action running from a clean IP. The server reads this instead of
-    // hitting u.gg directly, so it works even when this host's IP is blocked.
-    // A local file path (UGG_DATASET_PATH) takes precedence over the URL.
-    datasetUrl:
-      process.env.UGG_DATASET_URL ??
-      "https://github.com/ryanpolasky/Ryot/releases/download/dataset/ugg-dataset.json.gz",
-    datasetPath: process.env.UGG_DATASET_PATH ?? "",
-    // How often to re-download the dataset (minutes). 0 disables auto-refresh.
-    datasetRefreshMs: num("UGG_DATASET_REFRESH_MIN", 360) * 60_000,
-    // Fall back to scraping u.gg live when the dataset lacks a champion or fails
-    // to load. Keep on for hosts with a clean IP; harmless (just 403s) otherwise.
-    liveFallback: bool("UGG_LIVE_FALLBACK", true),
+  stats: {
+    // Ryot's own build/meta engine: aggregates builds, tier lists, and matchups
+    // from Riot's Match-V5 API instead of scraping a third party. Disabled until
+    // a production Riot key is in place — while off, the crawler never runs and
+    // build/meta endpoints report "coming soon".
+    crawlEnabled: bool("STATS_CRAWL_ENABLED", false),
+    // Platforms whose ladders seed the crawl (comma-separated).
+    crawlPlatforms: (process.env.STATS_CRAWL_PLATFORMS ?? "na1,euw1,kr")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
+    // Seed depth: "apex" = challenger+grandmaster+master only; "all" also pages
+    // league-exp for lower tiers (far more calls, enables rank buckets).
+    crawlScope: (process.env.STATS_CRAWL_SCOPE ?? "apex").trim().toLowerCase(),
+    // Recent ranked matches pulled per seeded player each cycle.
+    matchesPerPlayer: num("STATS_MATCHES_PER_PLAYER", 15),
+    // Minutes between crawl cycles. 0 disables the periodic loop (one-shot only).
+    cycleIntervalMs: num("STATS_CYCLE_INTERVAL_MIN", 360) * 60_000,
+    // Where the aggregated snapshot (gzipped JSON) is persisted, relative to cwd.
+    snapshotPath:
+      process.env.STATS_SNAPSHOT_PATH ?? "data/stats-snapshot.json.gz",
   },
 };
 

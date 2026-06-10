@@ -26,7 +26,7 @@ export default function Error({
         </h1>
         <p className="mt-4 max-w-md text-sm text-muted">
           Something went wrong on our end. This usually clears up on a retry. If
-          it keeps happening, an upstream data source (Riot or u.gg) may be
+          it keeps happening, an upstream data source (the Riot API) may be
           rate-limiting us.
         </p>
         <div className="mt-7 flex flex-wrap items-center justify-center gap-3">

@@ -7,8 +7,9 @@
  * - predict lanes: optimal 5→5 lane assignment for a team
  * - meta board: global most-picked + highest-winrate threats
  *
- * Data sources (all u.gg static CDN, no auth):
- * - overview: per-champion per-role stats (reused from buildService)
+ * Data sources: Ryot's own build/meta engine (Riot Match-V5 aggregation; see
+ * ../stats), shared with buildService:
+ * - overview: per-champion per-role stats
  * - matchups: per-champion per-opponent win/loss/games
  */
 import { ddragonImg } from "@lc/shared";
@@ -19,10 +20,11 @@ import {
   getVersion,
 } from "../ddragonStore.js";
 import {
+  assertStatsReady,
   fetchAramOverview,
   fetchMatchups,
   fetchOverview,
-} from "../uggSource.js";
+} from "../stats/engine.js";
 
 const ROLE_LABELS: Record<string, string> = {
   "1": "Jungle",
@@ -112,6 +114,7 @@ export async function getChampionMatchups(
   roleParam?: string,
   rankParam?: string,
 ): Promise<ChampionMatchups> {
+  assertStatsReady();
   const champ = await resolveChampion(championKey);
   const data = await fetchMatchups(champ.id);
   const rankId = rankParam ? (RANK_MAP[rankParam] ?? rankParam) : "17";
@@ -190,6 +193,7 @@ export interface ChampionRoles {
 export async function getRoleDistribution(
   championKey: string,
 ): Promise<ChampionRoles> {
+  assertStatsReady();
   const champ = await resolveChampion(championKey);
   const overview = await fetchOverview(champ.id);
   const rankBucket = overview["17"] ?? overview["10"] ?? overview["8"];
@@ -237,6 +241,7 @@ export interface LanePrediction {
 export async function predictLanes(
   championKeys: string[],
 ): Promise<LanePrediction[]> {
+  assertStatsReady();
   if (championKeys.length !== 5)
     throw new Error("Exactly 5 champion keys required");
 
@@ -320,9 +325,10 @@ export interface MetaBoard {
 
 /**
  * Aggregates overview data across all champions to produce a global meta board.
- * Cached per patch for 12 h to be polite to u.gg's CDN.
+ * Cached per patch for 12 h.
  */
 export async function getMetaBoard(rankParam?: string): Promise<MetaBoard> {
+  assertStatsReady();
   const patch = await patchString();
   const rankId = rankParam ? (RANK_MAP[rankParam] ?? rankParam) : "17";
 
@@ -427,12 +433,12 @@ function tierForRank(index: number, count: number): string {
 }
 
 /**
- * Builds a per-role tier list from u.gg overview data (reuses the same source
- * as the build/meta features). Win rate is exact; "pick share" is a champion's
- * fraction of games within its role (a popularity proxy; u.gg's true
- * pick/ban-rate ranking endpoint is not publicly fetchable). Cached 12 h.
+ * Builds a per-role tier list from the engine's overview data (same source as
+ * the build/meta features). Win rate is exact; "pick share" is a champion's
+ * fraction of games within its role (a popularity proxy). Cached 12 h.
  */
 export async function getTierList(rankParam?: string): Promise<TierListResult> {
+  assertStatsReady();
   const patch = await patchString();
   const rankId = rankParam ? (RANK_MAP[rankParam] ?? rankParam) : "17";
 
@@ -537,6 +543,7 @@ export interface AramTierListResult {
  * small pick-share bump and drop near-unplayed champs.
  */
 export async function getAramTierList(): Promise<AramTierListResult> {
+  assertStatsReady();
   const patch = await patchString();
 
   return cache.wrap(`meta:aram-tierlist:${patch}`, 43200, async () => {

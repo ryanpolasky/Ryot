@@ -78,9 +78,9 @@ const GROUPS: { title: string; qa: { q: string; a: string[] }[] }[] = [
         ],
       },
       {
-        q: 'Why do builds or the tier list sometimes say "failed to load"?',
+        q: 'Why do builds and the tier list say "coming soon"?',
         a: [
-          "Build, tier-list, and matchup data is sourced from community stats (u.gg) and occasionally hits a transient rate-limit. It recovers on the next pull, just refresh.",
+          "Builds, tier lists, and matchups are moving to Ryot's own meta engine, aggregated from Riot's match data instead of a third-party site. That engine is still being built, so those pages show a 'coming soon' notice for now — they'll light up once it's live.",
         ],
       },
       {

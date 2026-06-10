@@ -8,11 +8,15 @@ import {
   ChampionMasteryDTO,
   CurrentGameInfo,
   LeagueEntryDTO,
+  LeagueListDTO,
   MatchDTO,
   MatchTimelineDTO,
   RiotAccount,
   SummonerDTO,
 } from "./types.js";
+
+/** Apex tiers, routed under league-v4's per-tier endpoints. */
+export type ApexTier = "challenger" | "grandmaster" | "master";
 
 export class RiotApiError extends Error {
   constructor(
@@ -135,6 +139,41 @@ export class RiotClient {
     return this.get<LeagueEntryDTO[]>(
       this.platformHost(platform),
       `/lol/league/v4/entries/by-puuid/${encodeURIComponent(puuid)}`,
+    );
+  }
+
+  /**
+   * Apex league ladder (challenger / grandmaster / master) for a queue. Used to
+   * seed the stats crawler with a pool of high-elo players. Entries now include
+   * `puuid` directly, so no summoner lookup is needed.
+   */
+  async getApexLeague(
+    platform: Platform,
+    tier: ApexTier,
+    queue = "RANKED_SOLO_5x5",
+  ): Promise<LeagueListDTO> {
+    return this.get<LeagueListDTO>(
+      this.platformHost(platform),
+      `/lol/league/v4/${tier}leagues/by-queue/${queue}`,
+    );
+  }
+
+  /**
+   * Paginated ranked entries for an exact tier + division (league-exp-v4), e.g.
+   * EMERALD I page 1. Lets the crawler sample non-apex ranks for rank-bucketed
+   * builds. Returns [] past the last page.
+   */
+  async getLeagueEntries(
+    platform: Platform,
+    tier: string,
+    division: string,
+    opts: { queue?: string; page?: number } = {},
+  ): Promise<LeagueEntryDTO[]> {
+    const queue = opts.queue ?? "RANKED_SOLO_5x5";
+    return this.get<LeagueEntryDTO[]>(
+      this.platformHost(platform),
+      `/lol/league-exp/v4/entries/${queue}/${tier}/${division}`,
+      { page: opts.page ?? 1 },
     );
   }
 

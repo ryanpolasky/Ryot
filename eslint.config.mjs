@@ -44,7 +44,7 @@ export default tseslint.config(
           caughtErrors: "none",
         },
       ],
-      // Riot / u.gg / Data Dragon payloads are loosely typed; `any` is sometimes pragmatic.
+      // Riot / Data Dragon payloads are loosely typed; `any` is sometimes pragmatic.
       "@typescript-eslint/no-explicit-any": "warn",
     },
   },

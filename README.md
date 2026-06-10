@@ -17,7 +17,7 @@ and a few friends and it gets out of the way.
 | **Profile & Ranked**      | Profile icon, summoner level, Solo/Duo & Flex rank + LP, winrate.                                                                                                                                                                                                                                                                                                |
 | **Match History**         | Recent 10 matches with champion, KDA, CS, items, duration, and both team rosters.                                                                                                                                                                                                                                                                                |
 | **Live-Game Scout**       | See everyone in a player's current match: ranked info, winrate, champion. Auto-refreshes every 30 s.                                                                                                                                                                                                                                                             |
-| **Champion Builds**       | Recommended runes, summoner spells, skill order, starting items, core build, and situational items per champion & role. Data from community stats (u.gg).                                                                                                                                                                                                        |
+| **Champion Builds**       | Recommended runes, summoner spells, skill order, starting items, core build, and situational items per champion & role. Powered by Ryot's own meta engine (Riot Match-V5 aggregation; coming soon).                                                                                                                                                                                                        |
 | **Item Tooltips**         | Hover any item for a fit-to-content tooltip with its gold cost and the real in-game effect description (Data Dragon, with League's stat/passive/active markup).                                                                                                                                                                                                  |
 | **Desktop App**           | One Electron app with **three windows**: a native main window that loads the Ryot site and opens straight to _your_ profile (detected via the League Client), the in-game overlay, and the champ-select pre-game popup. Friends point it at your hosted backend - no per-user API key.                                                                           |
 | **Champ-Select Pre-Game** | Porofessor-style popup (on a monitor you choose) the moment you enter champ select: both teams, bans, a two-stage meta board (most-picked → that champ's common ban targets on hover), **enemy lane prediction** (cards reordered top→jg→mid→bot→sup), recommended build, and an in-app **rune editor** (pre-filled, click-to-swap) with auto-import on lock-in. |
@@ -177,6 +177,12 @@ docker compose up -d --build
 | `API_BASE`             | _(same as above)_       | API URL for **server-side rendering** (set to `http://server:4000` in Docker). |
 | `OVERLAY_API_BASE`     | `http://localhost:4000` | API URL the overlay uses (future use).                                         |
 
+> **Build/meta engine** (off by default): `STATS_CRAWL_ENABLED`, plus
+> `STATS_CRAWL_PLATFORMS`, `STATS_CRAWL_SCOPE`, `STATS_MATCHES_PER_PLAYER`,
+> `STATS_CYCLE_INTERVAL_MIN`, and `STATS_SNAPSHOT_PATH` (see `.env.example`).
+> It aggregates builds/tier lists from Riot's Match-V5 API and needs a
+> **production** key; until it's enabled those pages show "coming soon".
+
 ---
 
 ## Riot API Keys
@@ -197,7 +203,7 @@ For a small friend group, a **Personal API key** is ideal. Apply at https://deve
 - **Frontend:** Next.js 15 (App Router) · React 19 · Tailwind CSS
 - **Overlay & Desktop:** Electron 33 · TypeScript · Live Client Data API · League Client (LCU) API
 - **Packaging:** pnpm workspaces · Docker Compose
-- **Data Sources:** Riot API (Account-v1, Summoner-v4, League-v4, Match-v5, Spectator-v5) · Data Dragon CDN · community stats (u.gg) for builds & meta
+- **Data Sources:** Riot API (Account-v1, Summoner-v4, League-v4, Match-v5, Spectator-v5) · Data Dragon CDN · Ryot's own meta engine (Match-v5 aggregation) for builds & tier lists
 
 ---
 

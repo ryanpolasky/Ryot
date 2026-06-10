@@ -66,17 +66,31 @@ export default async function BuildPage({ params, searchParams }: Props) {
   } catch (err) {
     const name = decodeURIComponent(champion);
     const notFound = err instanceof ApiError && err.status === 404;
+    const comingSoon = err instanceof ApiError && err.status === 503;
     return (
       <div className="animate-riseIn space-y-6">
         <ChampionSearch />
         <div className="card flex flex-col items-center px-6 py-12 text-center">
-          <p className="font-display text-2xl uppercase tracking-tightest text-loss">
-            {notFound ? "No champion called" : "Couldn't load"} &ldquo;{name}&rdquo;
+          <p
+            className={`font-display text-2xl uppercase tracking-tightest ${
+              comingSoon ? "text-gold" : "text-loss"
+            }`}
+          >
+            {comingSoon ? (
+              "Builds — coming soon"
+            ) : (
+              <>
+                {notFound ? "No champion called" : "Couldn't load"} &ldquo;{name}
+                &rdquo;
+              </>
+            )}
           </p>
           <p className="mt-2 max-w-md text-sm text-muted">
-            {notFound
-              ? "Check the spelling, or search for a champion above. Try names like Jinx, Lee Sin, or Aatrox."
-              : "A data source may be rate-limiting us right now. Try again in a moment."}
+            {comingSoon
+              ? "Ryot is building its own proprietary build engine from Riot match data. Champion builds will be back shortly."
+              : notFound
+                ? "Check the spelling, or search for a champion above. Try names like Jinx, Lee Sin, or Aatrox."
+                : "A data source may be rate-limiting us right now. Try again in a moment."}
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Link href="/build" className="btn-outline">
@@ -321,7 +335,7 @@ export default async function BuildPage({ params, searchParams }: Props) {
       </section>
 
       <p className="text-center font-mono text-[10px] uppercase tracking-wider text-faint">
-        Build data sourced from community statistics (u.gg). Not endorsed by Riot Games.
+        Build data aggregated from Riot match data. Not endorsed by Riot Games.
       </p>
     </div>
   );

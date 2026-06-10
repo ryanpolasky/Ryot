@@ -1,7 +1,7 @@
 /**
- * Fetches recommended champion builds from u.gg's community stats CDN.
- * All item/rune/spell IDs are resolved to names + icon URLs using Data Dragon
- * so the web client can just render the response directly.
+ * Recommended champion builds from Ryot's own build engine (Riot Match-V5
+ * aggregation; see ../stats). All item/rune/spell IDs are resolved to names +
+ * icon URLs using Data Dragon so the web client can render the response directly.
  */
 
 import {
@@ -27,10 +27,10 @@ const SUMMONER_SPELL_NAME: Record<number, string> = {
 };
 import { cache } from "../cache.js";
 import { getChampionMap, getVersion } from "../ddragonStore.js";
-import { fetchOverview } from "../uggSource.js";
+import { assertStatsReady, fetchOverview } from "../stats/engine.js";
 import { ServiceError } from "./riotService.js";
 
-/** u.gg role ids. */
+/** Internal role ids (kept stable across the build/meta services). */
 const ROLE_MAP: Record<string, string> = {
   top: "4",
   jungle: "1",
@@ -46,7 +46,7 @@ const ROLE_LABELS: Record<string, string> = {
   "5": "Mid",
 };
 
-/** u.gg rank ids. We expose a curated subset. */
+/** Internal rank-bucket ids. We expose a curated subset. */
 const RANK_MAP: Record<string, string> = {
   emerald_plus: "17",
   platinum_plus: "10",
@@ -162,6 +162,8 @@ export async function getRecommendedBuild(
   roleParam?: string,
   rankParam?: string,
 ): Promise<RecommendedBuild> {
+  // 503 "coming soon" until the engine has a snapshot to serve.
+  assertStatsReady();
   const version = await getVersion();
 
   // Resolve champion id (numeric) from name/key.
@@ -186,12 +188,13 @@ export async function getRecommendedBuild(
   if (!champId)
     throw new ServiceError(404, `No champion called "${championKey}".`);
 
-  // u.gg overview: dataset-first (cache + weekly crawl), live fallback.
-  const uggData = await fetchOverview(champId);
+  // Per-champion overview from the build engine snapshot.
+  const overviewData = await fetchOverview(champId);
 
   // Resolve rank.
   const rankId = rankParam ? (RANK_MAP[rankParam] ?? rankParam) : "17";
-  const rankBucket = uggData[rankId] ?? uggData["10"] ?? uggData["8"];
+  const rankBucket =
+    overviewData[rankId] ?? overviewData["10"] ?? overviewData["8"];
   if (!rankBucket) throw new Error("No data for this rank");
 
   // Available roles.

@@ -16,7 +16,7 @@ coverage/
 release/
 dist-electron/
 
-# Locally-generated u.gg crawl output (published to a GitHub release by CI).
+# Locally-generated build/meta engine snapshot (gzipped JSON aggregates).
 apps/server/data/
 
 # IDE

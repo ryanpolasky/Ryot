@@ -4,6 +4,22 @@ All notable changes to Ryot are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.6] - 2026-06-10
+
+Builds, tier lists, and matchups move to Ryot's own meta engine.
+
+### Changed
+
+- Builds, tier lists, and matchups are moving to Ryot's own meta engine, built
+  from Riot's official Match-V5 API. I wasn't comfortable sitting in the ToS grey
+  area of scraping a third-party stats site, so I'm doing it the legit way —
+  those pages (and the status dashboard) show "coming soon" while I build it out.
+
+### Removed
+
+- The third-party stats dependency (u.gg). Champion data now comes only from
+  Riot's official API.
+
 ## [1.0.5] - 2026-06-08
 
 Overlay upgrades, desktop quality-of-life, and a u.gg fix.
