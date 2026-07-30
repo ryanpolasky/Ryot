@@ -41,6 +41,7 @@ export interface RiotClientOptions {
   apiKey: string;
   /** Override for tests; defaults to the global fetch. */
   fetchImpl?: typeof fetch;
+  timeoutMs?: number;
 }
 
 /**
@@ -50,6 +51,7 @@ export interface RiotClientOptions {
 export class RiotClient {
   private apiKey: string;
   private fetchImpl: typeof fetch;
+  private timeoutMs: number;
 
   constructor(opts: RiotClientOptions) {
     if (!opts.apiKey) {
@@ -57,6 +59,7 @@ export class RiotClient {
     }
     this.apiKey = opts.apiKey;
     this.fetchImpl = opts.fetchImpl ?? fetch;
+    this.timeoutMs = opts.timeoutMs ?? 10_000;
   }
 
   private async get<T>(
@@ -71,6 +74,7 @@ export class RiotClient {
     }
     const res = await this.fetchImpl(url.toString(), {
       headers: { "X-Riot-Token": this.apiKey },
+      signal: AbortSignal.timeout(this.timeoutMs),
     });
     if (!res.ok) {
       const retryAfter = Number(res.headers.get("Retry-After")) || undefined;
