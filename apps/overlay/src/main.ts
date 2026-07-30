@@ -6,7 +6,7 @@ import {
   screen,
   shell,
 } from "electron";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 
@@ -63,10 +63,10 @@ function createWindow() {
     focusable: false,
     alwaysOnTop: true,
     webPreferences: {
-      preload: join(__dirname, "preload.js"),
+      preload: join(__dirname, "preload.mjs"),
       contextIsolation: true,
       nodeIntegration: false,
-      // ESM preload scripts require the sandbox to be disabled in Electron.
+      // ESM (.mjs) preload scripts require the sandbox to be disabled in Electron.
       sandbox: false,
     },
   });
@@ -77,7 +77,9 @@ function createWindow() {
   // Start click-through so the overlay never steals input from the game.
   win.setIgnoreMouseEvents(true, { forward: true });
 
-  const url = new URL(`file://${join(__dirname, "index.html")}`);
+  // pathToFileURL (not string interpolation) so install paths containing "#"
+  // or "?" don't silently truncate into a fragment/query.
+  const url = pathToFileURL(join(__dirname, "index.html"));
   if (MOCK) url.searchParams.set("mock", "1");
   // Backend URL so the overlay can pull recommended builds/skill order.
   url.searchParams.set(
@@ -108,12 +110,23 @@ function setEditMode(next: boolean) {
 app.on(
   "certificate-error",
   (event, _webContents, url, _error, _certificate, callback) => {
-    if (url.startsWith("https://127.0.0.1:2999")) {
-      event.preventDefault();
-      callback(true);
-    } else {
-      callback(false);
+    // Match on the parsed host, not a string prefix: "https://127.0.0.1:2999"
+    // also prefixes 127.0.0.1:29990-29999, which are not the Live Client.
+    try {
+      const target = new URL(url);
+      if (
+        target.protocol === "https:" &&
+        target.hostname === "127.0.0.1" &&
+        target.port === "2999"
+      ) {
+        event.preventDefault();
+        callback(true);
+        return;
+      }
+    } catch {
+      /* unparseable URL: fall through and verify normally */
     }
+    callback(false);
   },
 );
 
