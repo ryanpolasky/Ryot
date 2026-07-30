@@ -4,9 +4,9 @@ All notable changes to Ryot are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.6] - 2026-06-10
+## [1.1.0] - 2026-07-29
 
-Builds, tier lists, and matchups move to Ryot's own meta engine.
+Ryot's own meta engine, plus a broad correctness and hardening pass.
 
 ### Changed
 
@@ -14,6 +14,52 @@ Builds, tier lists, and matchups move to Ryot's own meta engine.
   from Riot's official Match-V5 API. I wasn't comfortable sitting in the ToS grey
   area of scraping a third-party stats site, so I'm doing it the legit way —
   those pages (and the status dashboard) show "coming soon" while I build it out.
+- The status page lists the build engine as "coming soon" rather than an outage,
+  so nothing reads as broken while it's being built.
+- Repeated requests for the same data are shared instead of duplicated, and every
+  Riot API call now has a timeout, so one slow response can't stall everything
+  queued behind it.
+
+### Fixed
+
+- Match length and CS/min were wrong on games played before patch 11.20. Riot
+  changed the unit of the match duration field at that patch, and Ryot read it
+  as-is: those games showed durations like "1920:00" and per-minute stats off by
+  roughly 1000x.
+- The session tracker merged separate play sessions into a single one for those
+  same older games.
+- Recent matches no longer read "-1m ago" when a game has only just ended; they
+  now read "just now".
+- Match breakdowns no longer show "NaN" for final gold difference on very short
+  games, and switching match or summoner while one is still loading can no longer
+  leave the previous player's numbers on screen.
+- Rune import could delete one of your own rune pages when the League client was
+  at its page limit. It now only ever reclaims a page Ryot created.
+- Desktop: the overlay is placed from the display's full bounds, so it lands
+  correctly on multi-monitor setups and when a taskbar shrinks the work area.
+- Desktop: the overlay no longer stays hidden for the rest of the session if the
+  window watcher stops unexpectedly.
+- The standalone overlay app now starts at all: its preload script never loaded,
+  which left every panel control, drag, and calibration action dead.
+- Riot IDs, match ids, and champion names containing a percent sign now resolve
+  instead of failing.
+- Saved recent searches left over in an old or corrupted shape are ignored
+  instead of rendering blank suggestion rows.
+- Item tooltips are reachable by keyboard and exposed to screen readers, and no
+  longer overflow narrow screens.
+- The main nav switches to the mobile menu at a wider breakpoint, so the links
+  stop colliding with the logo on tablet widths.
+
+### Security
+
+- Desktop: rune, summoner-spell, and item-set import payloads are validated
+  before they reach the League client.
+- Desktop: saved settings are validated on load, so a hand-edited settings file
+  can no longer point the app at a non-http(s) URL.
+- Desktop: the connection-error screen escapes the URL it displays, and in-app
+  navigation is restricted to Ryot's own pages.
+- The overlay's certificate exemption for Riot's Live Client API is scoped to
+  exactly port 2999 (it previously also covered ports 29990-29999).
 
 ### Removed
 
@@ -200,5 +246,9 @@ builds, a champ-select pre-game suite, and a Blitz-style in-game overlay.
 - Not endorsed by Riot Games. The overlay (Live Client Data API) and desktop
   LCU integration are ToS-compliant, with no memory reading.
 
+[1.1.0]: https://github.com/ryanpolasky/ryot/releases/tag/v1.1.0
+[1.0.5]: https://github.com/ryanpolasky/ryot/releases/tag/v1.0.5
+[1.0.4]: https://github.com/ryanpolasky/ryot/releases/tag/v1.0.4
+[1.0.2]: https://github.com/ryanpolasky/ryot/releases/tag/v1.0.2
 [1.0.1]: https://github.com/ryanpolasky/ryot/releases/tag/v1.0.1
 [1.0.0]: https://github.com/ryanpolasky/ryot/releases/tag/v1.0.0

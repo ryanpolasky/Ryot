@@ -21,8 +21,8 @@ const TAG_COLOR: Record<string, string> = {
 
 const ENTRIES: Entry[] = [
   {
-    version: "v1.0.6",
-    date: "June 2026",
+    version: "v1.1.0",
+    date: "July 2026",
     tag: "Latest",
     changes: [
       {
@@ -32,6 +32,34 @@ const ENTRIES: Entry[] = [
       {
         type: "Improved",
         text: "The status page now lists the build engine as 'coming soon' instead of an outage, so nothing reads as broken while it's being built.",
+      },
+      {
+        type: "Fixed",
+        text: "Match length and CS/min were wrong on games played before patch 11.20 — Riot changed the unit of the duration field at that patch. Those games showed times like '1920:00' and per-minute stats off by roughly 1000x, and the session tracker merged separate sessions into one.",
+      },
+      {
+        type: "Fixed",
+        text: "Rune import could delete one of your own rune pages when the League client was at its page limit. It now only ever reclaims a page Ryot created.",
+      },
+      {
+        type: "Fixed",
+        text: "Desktop: the overlay lands correctly on multi-monitor setups, and no longer stays hidden for the rest of the session if the window watcher stops.",
+      },
+      {
+        type: "Fixed",
+        text: "Match breakdowns no longer show 'NaN' for final gold difference on very short games, and switching match or summoner mid-load can't leave the previous player's numbers on screen.",
+      },
+      {
+        type: "Fixed",
+        text: "Riot IDs, match ids, and champion names containing a percent sign now resolve instead of failing, and games that just ended read 'just now' instead of '-1m ago'.",
+      },
+      {
+        type: "Improved",
+        text: "Item tooltips work with a keyboard and screen readers, the nav switches to the mobile menu before it collides with the logo, and repeated requests for the same data are shared instead of duplicated.",
+      },
+      {
+        type: "Improved",
+        text: "Desktop hardening: rune, spell, and item-set imports are validated before reaching the League client, saved settings are validated on load, and in-app navigation is restricted to Ryot's own pages.",
       },
     ],
   },
