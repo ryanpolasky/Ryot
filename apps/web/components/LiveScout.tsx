@@ -11,6 +11,7 @@ import {
   type LiveGameResult,
   type ScoutParticipant,
 } from "@/lib/api";
+import { byokHeaders } from "@/lib/byok";
 import { findQueue, rankLabel, tierColor, winrate } from "@/lib/format";
 import { onIconError } from "@/lib/img";
 
@@ -35,10 +36,13 @@ export default function LiveScout({
 
   useEffect(() => {
     let active = true;
+    let running = false;
     const run = async () => {
-      if (active) setLoading(true);
+      if (!active || running) return;
+      running = true;
+      setLoading(true);
       try {
-        const live = await getLive(region, name, tag);
+        const live = await getLive(region, name, tag, byokHeaders());
         if (!champLoaded.current) {
           const champs = await getChampions();
           if (active) {
@@ -57,6 +61,7 @@ export default function LiveScout({
             e instanceof Error ? e.message : "Failed to load live game.",
           );
       } finally {
+        running = false;
         if (active) setLoading(false);
       }
     };

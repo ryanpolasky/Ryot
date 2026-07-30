@@ -11,8 +11,8 @@ export default async function LivePage({
   return (
     <LiveScout
       region={region}
-      name={decodeURIComponent(name)}
-      tag={decodeURIComponent(tag)}
+      name={name}
+      tag={tag}
     />
   );
 }

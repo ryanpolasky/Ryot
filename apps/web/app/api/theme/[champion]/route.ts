@@ -40,7 +40,7 @@ export async function GET(
     0,
     Math.trunc(Number(new URL(req.url).searchParams.get("skin")) || 0),
   );
-  const id = await resolveChampionId(decodeURIComponent(champion));
+  const id = await resolveChampionId(champion);
   // Accent decodes the small Data Dragon splash (cheap); the page backdrop uses
   // the cleaner centered Community Dragon art (with a Data Dragon fallback).
   const [accent, splash] = await Promise.all([

@@ -93,7 +93,7 @@ export default function ChampionSearch({ current }: { current?: string }) {
   }, [query, data]);
 
   // Reset the highlight whenever the query (and thus the result set) changes.
-  useEffect(() => setActive(0), [query]);
+  useEffect(() => setActive(0), [query, results.length]);
 
   const showList = open && results.length > 0;
 
@@ -117,12 +117,13 @@ export default function ChampionSearch({ current }: { current?: string }) {
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "ArrowDown") {
+    if (e.key === "ArrowDown" && results.length > 0) {
       e.preventDefault();
       setOpen(true);
       setActive((i) => Math.min(i + 1, results.length - 1));
-    } else if (e.key === "ArrowUp") {
+    } else if (e.key === "ArrowUp" && results.length > 0) {
       e.preventDefault();
+      setOpen(true);
       setActive((i) => Math.max(i - 1, 0));
     } else if (e.key === "Escape") {
       setOpen(false);

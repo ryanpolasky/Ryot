@@ -54,12 +54,36 @@ export function setRecentsEnabled(on: boolean): void {
   }
 }
 
+const SOURCES: RecentSource[] = ["search", "self", "teammate"];
+
+/**
+ * localStorage is shared with older Ryot versions and is trivially editable, so
+ * treat anything in it as untrusted: drop entries that don't match the current
+ * shape instead of rendering `undefined` rows in the suggestion list.
+ */
+function isRecent(v: unknown): v is RecentSummoner {
+  if (!v || typeof v !== "object") return false;
+  const r = v as Partial<RecentSummoner>;
+  return (
+    typeof r.region === "string" &&
+    !!r.region &&
+    typeof r.gameName === "string" &&
+    !!r.gameName &&
+    typeof r.tagLine === "string" &&
+    !!r.tagLine &&
+    typeof r.ts === "number" &&
+    Number.isFinite(r.ts) &&
+    SOURCES.includes(r.source as RecentSource)
+  );
+}
+
 export function getRecents(): RecentSummoner[] {
   if (typeof window === "undefined" || !recentsEnabled()) return [];
   try {
     const raw = window.localStorage.getItem(KEY);
-    const list = raw ? (JSON.parse(raw) as RecentSummoner[]) : [];
-    return list.sort((a, b) => b.ts - a.ts);
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(isRecent).sort((a, b) => b.ts - a.ts);
   } catch {
     return [];
   }
@@ -127,7 +151,14 @@ export function getMe(): Me | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(ME_KEY);
-    return raw ? (JSON.parse(raw) as Me) : null;
+    if (!raw) return null;
+    const v: unknown = JSON.parse(raw);
+    if (!v || typeof v !== "object") return null;
+    const m = v as Partial<Me>;
+    // Same untrusted-storage rule as getRecents: a half-written or legacy
+    // entry must not become an "undefined#undefined" pin.
+    if (!m.region || !m.gameName || !m.tagLine) return null;
+    return { region: m.region, gameName: m.gameName, tagLine: m.tagLine };
   } catch {
     return null;
   }

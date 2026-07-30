@@ -22,8 +22,8 @@ export async function generateMetadata({
   params: Promise<Params>;
 }): Promise<Metadata> {
   const { region, name, tag } = await params;
-  const gameName = decodeURIComponent(name);
-  const tagLine = decodeURIComponent(tag);
+  const gameName = name;
+  const tagLine = tag;
   const riotId = `${gameName}#${tagLine}`;
   const ogUrl = `/api/og/summoner/${region}/${encodeURIComponent(
     gameName,
@@ -54,8 +54,8 @@ export default async function SummonerPage({
   params: Promise<{ region: string; name: string; tag: string }>;
 }) {
   const { region, name, tag } = await params;
-  const gameName = decodeURIComponent(name);
-  const tagLine = decodeURIComponent(tag);
+  const gameName = name;
+  const tagLine = tag;
 
   let profile;
   try {

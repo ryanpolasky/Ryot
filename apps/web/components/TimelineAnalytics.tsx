@@ -63,15 +63,26 @@ export default function TimelineAnalytics({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Guard against a slower earlier request resolving after a newer one and
+    // overwriting the displayed match.
+    let cancelled = false;
+    setData(null);
+    setError(null);
     getTimeline(region, matchId, byokHeaders())
-      .then(setData)
-      .catch((err) =>
+      .then((res) => {
+        if (!cancelled) setData(res);
+      })
+      .catch((err) => {
+        if (cancelled) return;
         setError(
           err instanceof ApiError
             ? err.message
             : "Couldn't load match timeline.",
-        ),
-      );
+        );
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [region, matchId]);
 
   const analysis = useMemo(() => {
@@ -174,6 +185,9 @@ export default function TimelineAnalytics({
   const { me, goldDiff, xpDiff, csAt10, csAt15, myTeamParts, teamDmg } =
     analysis;
   const version = data.version;
+  // A timeline with no frames (very short remakes) leaves goldDiff empty, so
+  // read the last entry defensively rather than formatting `undefined` as NaN.
+  const finalGoldDiff = goldDiff.length ? goldDiff[goldDiff.length - 1]! : 0;
 
   return (
     <div className="space-y-6">
@@ -203,11 +217,11 @@ export default function TimelineAnalytics({
           </div>
           <div
             className={`stat mt-1 text-2xl ${
-              goldDiff[goldDiff.length - 1] >= 0 ? "text-win" : "text-loss"
+              finalGoldDiff >= 0 ? "text-win" : "text-loss"
             }`}
           >
-            {goldDiff[goldDiff.length - 1] >= 0 ? "+" : ""}
-            {fmtK(goldDiff[goldDiff.length - 1])}
+            {finalGoldDiff >= 0 ? "+" : ""}
+            {fmtK(finalGoldDiff)}
           </div>
         </div>
         <div className="card p-4">
@@ -231,7 +245,7 @@ export default function TimelineAnalytics({
         <DiffChart values={goldDiff} />
         <div className="mt-1 flex justify-between font-mono text-[10px] text-faint">
           <span>0:00</span>
-          <span>{goldDiff.length - 1}:00</span>
+          <span>{Math.max(0, goldDiff.length - 1)}:00</span>
         </div>
       </div>
 

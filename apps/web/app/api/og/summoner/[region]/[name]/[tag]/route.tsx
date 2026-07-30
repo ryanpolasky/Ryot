@@ -46,8 +46,8 @@ export async function GET(
   }: { params: Promise<{ region: string; name: string; tag: string }> },
 ) {
   const { region, name, tag } = await params;
-  const gameName = decodeURIComponent(name);
-  const tagLine = decodeURIComponent(tag);
+  const gameName = name;
+  const tagLine = tag;
 
   const fontsDir = join(process.cwd(), "app/api/og/fonts");
   const [anton, spaceMono, spaceGrotesk] = await Promise.all([

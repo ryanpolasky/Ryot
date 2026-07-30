@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, type ReactNode } from "react";
+import { useEffect, useId, useState, useRef, type ReactNode } from "react";
 
 interface Props {
   name: string;
@@ -21,7 +21,10 @@ export default function ItemTooltip({
   children,
 }: Props) {
   const [show, setShow] = useState(false);
+  const tooltipId = useId();
   const timeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => () => clearTimeout(timeout.current), []);
 
   const enter = () => {
     clearTimeout(timeout.current);
@@ -37,10 +40,19 @@ export default function ItemTooltip({
       className="relative inline-block"
       onMouseEnter={enter}
       onMouseLeave={leave}
+      onFocus={enter}
+      onBlur={leave}
+      tabIndex={0}
+      aria-label={name}
+      aria-describedby={show ? tooltipId : undefined}
     >
       {children}
       {show && (
-        <span className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-max max-w-[300px] -translate-x-1/2 border border-line bg-surface px-3 py-2 text-left shadow-xl">
+        <span
+          id={tooltipId}
+          role="tooltip"
+          className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-max max-w-[min(300px,calc(100vw-2rem))] -translate-x-1/2 border border-line bg-surface px-3 py-2 text-left shadow-xl"
+        >
           <span className="flex items-baseline justify-between gap-3">
             <span className="font-sans text-xs font-bold uppercase tracking-wide text-gold">
               {name}

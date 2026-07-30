@@ -32,7 +32,7 @@ export default function HomePage() {
       <section className="relative pb-12 pt-6">
         <p className="eyebrow mb-5">// League of Legends companion</p>
 
-        <h1 className="font-display text-[16vw] leading-[0.82] tracking-tightest text-bone sm:text-[11rem]">
+        <h1 className="font-display text-[clamp(4rem,15vw,11rem)] leading-[0.82] tracking-tightest text-bone">
           LOOK UP <br />
           ANY{" "}
           <RotatingWord

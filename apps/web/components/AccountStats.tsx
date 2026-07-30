@@ -1,7 +1,7 @@
 "use client";
 
 import { ddragonImg } from "@lc/shared";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ApiError, getAccountStats, type AccountStatsResult } from "@/lib/api";
 import { byokHeaders, hasByokKey } from "@/lib/byok";
 import { loadChampions } from "@/lib/champions";
@@ -36,9 +36,12 @@ export default function AccountStats({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [byok, setByok] = useState(false);
   const [champFiles, setChampFiles] = useState<Map<number, string>>(new Map());
+  const requestId = useRef(0);
 
   async function load(sample: number) {
+    const id = ++requestId.current;
     setLoading(true);
     setError(null);
     try {
@@ -49,18 +52,24 @@ export default function AccountStats({
         sample,
         byokHeaders(),
       );
+      if (id !== requestId.current) return;
       setData(res);
       setLoaded(true);
     } catch (err) {
+      if (id !== requestId.current) return;
       setError(err instanceof ApiError ? err.message : "Couldn't load stats.");
     } finally {
-      setLoading(false);
+      if (id === requestId.current) setLoading(false);
     }
   }
 
   // Auto-load a small sample on mount; BYOK users can expand it.
   useEffect(() => {
+    setByok(hasByokKey());
     load(20);
+    return () => {
+      requestId.current += 1;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [region, name, tag]);
 
@@ -93,7 +102,7 @@ export default function AccountStats({
             last {data.sampleSize} games
           </span>
         )}
-        {hasByokKey() && (
+        {byok && (
           <button
             onClick={() => load(50)}
             disabled={loading}

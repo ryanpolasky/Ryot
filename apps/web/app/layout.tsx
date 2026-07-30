@@ -51,7 +51,6 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Ryan Polasky", url: "https://ryanpolasky.com" }],
   creator: "Ryan Polasky",
-  alternates: { canonical: "/" },
   manifest: "/manifest.webmanifest",
   icons: {
     icon: "/icon.svg",
@@ -155,7 +154,7 @@ export default function RootLayout({
                 <span className="text-bone">OT</span>
               </Link>
 
-              <nav className="ml-3 hidden items-center gap-1 whitespace-nowrap font-mono text-xs uppercase tracking-[0.15em] text-muted sm:flex">
+              <nav className="ml-3 hidden items-center gap-1 whitespace-nowrap font-mono text-xs uppercase tracking-[0.15em] text-muted lg:flex">
                 <Link
                   href="/"
                   className="px-3 py-2 transition-colors hover:text-bone"
@@ -194,7 +193,7 @@ export default function RootLayout({
                 </Link>
               </nav>
 
-              <span className="ml-auto hidden items-center gap-2 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.2em] text-faint lg:flex">
+              <span className="ml-auto hidden items-center gap-2 whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.2em] text-faint xl:flex">
                 no ads · open source
               </span>
 

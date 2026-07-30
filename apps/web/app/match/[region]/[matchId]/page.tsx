@@ -25,7 +25,7 @@ export default async function MatchPage({
           Match Breakdown
         </h1>
         <span className="font-mono text-[11px] uppercase tracking-widest text-faint">
-          {decodeURIComponent(matchId)}
+          {matchId}
         </span>
         {backHref && (
           <Link
@@ -39,7 +39,7 @@ export default async function MatchPage({
 
       <TimelineAnalytics
         region={region}
-        matchId={decodeURIComponent(matchId)}
+        matchId={matchId}
         puuid={puuid}
       />
     </div>

@@ -127,11 +127,13 @@ export function getLive(
   region: string,
   name: string,
   tag: string,
+  headers?: Record<string, string>,
 ): Promise<LiveGameResult> {
   return getJson<LiveGameResult>(
     `/api/live/${region}/${enc(name)}/${enc(tag)}`,
     {
       cache: "no-store",
+      headers,
     },
   );
 }

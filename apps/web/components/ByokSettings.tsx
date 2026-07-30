@@ -72,7 +72,7 @@ export default function ByokSettings() {
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder="RGAPI-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-          className="field min-w-[320px] flex-1 font-mono text-sm"
+          className="field min-w-0 flex-1 basis-full font-mono text-sm sm:min-w-[320px] sm:basis-auto"
           aria-label="Riot API key"
           autoComplete="off"
           spellCheck={false}

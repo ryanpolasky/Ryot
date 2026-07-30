@@ -31,7 +31,7 @@ export async function GET(
   { params }: { params: Promise<{ champion: string }> },
 ) {
   const { champion } = await params;
-  const id = await resolveChampionId(decodeURIComponent(champion));
+  const id = await resolveChampionId(champion);
 
   let skins: DDragonSkin[] = [];
   try {

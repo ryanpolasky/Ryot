@@ -30,7 +30,7 @@ function championIdFromIcon(iconUrl: string): string {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { champion } = await params;
-  const name = decodeURIComponent(champion);
+  const name = champion;
   const ogUrl = `/api/og/${encodeURIComponent(name)}`;
   return {
     title: `${name} Build · Ryot`,
@@ -51,7 +51,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 // Tint the mobile browser chrome (iOS/Android URL bar) to the champion's accent.
 export async function generateViewport({ params }: Props): Promise<Viewport> {
   const { champion } = await params;
-  const id = await resolveChampionId(decodeURIComponent(champion));
+  const id = await resolveChampionId(champion);
   const accent = await accentFromSplash(splashUrl(id));
   return { themeColor: accent };
 }
@@ -62,9 +62,9 @@ export default async function BuildPage({ params, searchParams }: Props) {
 
   let build: RecommendedBuildResult;
   try {
-    build = await getBuild(decodeURIComponent(champion), role, rank);
+    build = await getBuild(champion, role, rank);
   } catch (err) {
-    const name = decodeURIComponent(champion);
+    const name = champion;
     const notFound = err instanceof ApiError && err.status === 404;
     const comingSoon = err instanceof ApiError && err.status === 503;
     return (
@@ -177,7 +177,7 @@ export default async function BuildPage({ params, searchParams }: Props) {
 
       {/* Role + rank selector (client component) */}
       <BuildClient
-        champion={decodeURIComponent(champion)}
+        champion={champion}
         currentRole={build.role}
         currentRank={build.rank}
         availableRoles={build.availableRoles}

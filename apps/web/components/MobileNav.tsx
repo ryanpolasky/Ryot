@@ -53,7 +53,7 @@ export default function MobileNav() {
   }, [open]);
 
   return (
-    <div className="ml-auto sm:hidden">
+    <div className="ml-auto lg:hidden">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -84,7 +84,7 @@ export default function MobileNav() {
             aria-hidden
             tabIndex={-1}
             onClick={() => setOpen(false)}
-            className="fixed inset-0 z-30 bg-black/70 backdrop-blur-sm sm:hidden"
+            className="fixed inset-0 z-30 bg-black/70 backdrop-blur-sm lg:hidden"
           />,
           document.body,
         )}

@@ -53,6 +53,7 @@ export default function SearchBar({
   const [champData, setChampData] = useState<ChampData | null>(null);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
+  const [validation, setValidation] = useState("");
   const listId = useId();
   const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -97,7 +98,7 @@ export default function SearchBar({
     return [...summoners, ...champions];
   }, [recents, me, champData, query]);
 
-  useEffect(() => setActive(0), [query]);
+  useEffect(() => setActive(0), [query, suggestions.length]);
 
   const showList = open && query.trim().length > 0 && suggestions.length > 0;
 
@@ -108,6 +109,7 @@ export default function SearchBar({
     source: RecentSummoner["source"] = "search",
   ) {
     addRecent({ region: r, gameName: name, tagLine: tag, source });
+    setValidation("");
     router.push(
       `/summoner/${r}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`,
     );
@@ -115,6 +117,7 @@ export default function SearchBar({
   }
 
   function goChampion(id: string) {
+    setValidation("");
     router.push(`/build/${encodeURIComponent(id)}`);
     setOpen(false);
   }
@@ -131,11 +134,17 @@ export default function SearchBar({
       return;
     }
     const trimmed = query.trim();
-    if (!trimmed) return;
+    if (!trimmed) {
+      setValidation("Enter a Riot ID or champion name.");
+      return;
+    }
     // Riot ID -> summoner.
     if (trimmed.includes("#")) {
-      const [name, tag] = trimmed.split("#");
+      const separator = trimmed.lastIndexOf("#");
+      const name = trimmed.slice(0, separator).trim();
+      const tag = trimmed.slice(separator + 1).trim();
       if (name && tag) goSummoner(region, name, tag);
+      else setValidation("Use a full Riot ID in the format Name#TAG.");
       return;
     }
     // Exact champion name -> build.
@@ -144,18 +153,17 @@ export default function SearchBar({
       goChampion(champ.id);
       return;
     }
-    // Otherwise treat it as a summoner name using the region's tag.
-    const tag = region.replace(/[0-9]/g, "").toUpperCase();
-    if (tag) goSummoner(region, trimmed, tag);
+    setValidation("Use a full Riot ID (Name#TAG), or choose a champion.");
   }
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "ArrowDown") {
+    if (e.key === "ArrowDown" && suggestions.length > 0) {
       e.preventDefault();
       setOpen(true);
       setActive((i) => Math.min(i + 1, suggestions.length - 1));
-    } else if (e.key === "ArrowUp") {
+    } else if (e.key === "ArrowUp" && suggestions.length > 0) {
       e.preventDefault();
+      setOpen(true);
       setActive((i) => Math.max(i - 1, 0));
     } else if (e.key === "Escape") {
       setOpen(false);
@@ -163,7 +171,7 @@ export default function SearchBar({
   }
 
   return (
-    <form onSubmit={submit} className="flex w-full gap-2">
+    <form onSubmit={submit} className="flex w-full flex-wrap gap-2">
       <select
         value={region}
         onChange={(e) => setRegion(e.target.value)}
@@ -182,6 +190,7 @@ export default function SearchBar({
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
+            setValidation("");
             setOpen(true);
           }}
           onFocus={() => {
@@ -196,6 +205,8 @@ export default function SearchBar({
           placeholder="Riot ID or champion // Faker#KR1, Jinx"
           className="field w-full text-base"
           aria-label="Search a Riot ID or champion"
+          aria-invalid={Boolean(validation)}
+          aria-describedby={validation ? `${listId}-error` : undefined}
           autoFocus={autoFocus}
           role="combobox"
           aria-expanded={showList}
@@ -271,6 +282,15 @@ export default function SearchBar({
       <button type="submit" className="btn-primary shrink-0 px-5 sm:px-7">
         Search
       </button>
+      {validation && (
+        <p
+          id={`${listId}-error`}
+          role="alert"
+          className="basis-full font-mono text-[11px] uppercase tracking-wider text-loss"
+        >
+          {validation}
+        </p>
+      )}
     </form>
   );
 }

@@ -11,8 +11,11 @@ export function winrate(wins: number, losses: number): number {
 }
 
 export function timeAgo(ms: number): string {
-  const diff = Date.now() - ms;
+  // Clamp at 0: a game that just ended (or any clock skew between the client
+  // and Riot's timestamps) would otherwise render as "-1m ago".
+  const diff = Math.max(0, Date.now() - ms);
   const min = Math.floor(diff / 60000);
+  if (min < 1) return "just now";
   if (min < 60) return `${min}m ago`;
   const hr = Math.floor(min / 60);
   if (hr < 24) return `${hr}h ago`;
@@ -23,8 +26,9 @@ export function timeAgo(ms: number): string {
 }
 
 export function duration(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
+  const total = Number.isFinite(seconds) ? Math.max(0, Math.floor(seconds)) : 0;
+  const m = Math.floor(total / 60);
+  const s = total % 60;
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 

@@ -37,7 +37,7 @@ export async function GET(
   { params }: { params: Promise<{ champion: string }> },
 ) {
   const { champion } = await params;
-  const { id, name } = await resolveChampion(decodeURIComponent(champion));
+  const { id, name } = await resolveChampion(champion);
 
   const [fonts, accent] = await Promise.all([
     loadOgFonts(),
