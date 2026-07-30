@@ -14,6 +14,7 @@ const MAX_ENTRIES = 5000;
 /** Minimal in-memory TTL cache with serve-stale-on-error and LRU eviction. */
 export class TtlCache {
   private store = new Map<string, Entry<unknown>>();
+  private inFlight = new Map<string, Promise<unknown>>();
 
   constructor(private readonly maxEntries: number = MAX_ENTRIES) {}
 
@@ -79,24 +80,37 @@ export class TtlCache {
     key: string,
     ttlSeconds: number,
     fn: () => Promise<T>,
+    serveStaleOnError = true,
   ): Promise<T> {
     const cached = this.get<T>(key);
     if (cached !== undefined) return cached;
-    try {
-      const value = await fn();
-      this.set(key, value, ttlSeconds);
-      return value;
-    } catch (err) {
-      const stale = this.getStale<T>(key);
-      if (stale !== undefined) {
-        console.warn(
-          `[cache] serving stale for "${key}":`,
-          (err as Error).message ?? err,
-        );
-        return stale;
-      }
-      throw err;
-    }
+
+    const existing = this.inFlight.get(key) as Promise<T> | undefined;
+    if (existing) return existing;
+
+    const pending = Promise.resolve()
+      .then(fn)
+      .then((value) => {
+        this.set(key, value, ttlSeconds);
+        return value;
+      })
+      .catch((err: unknown) => {
+        const stale = serveStaleOnError ? this.getStale<T>(key) : undefined;
+        if (stale !== undefined) {
+          console.warn(
+            `[cache] serving stale for "${key}":`,
+            (err as Error).message ?? err,
+          );
+          return stale;
+        }
+        throw err;
+      })
+      .finally(() => {
+        this.inFlight.delete(key);
+      });
+
+    this.inFlight.set(key, pending);
+    return pending;
   }
 }
 

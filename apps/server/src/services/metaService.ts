@@ -24,7 +24,9 @@ import {
   fetchAramOverview,
   fetchMatchups,
   fetchOverview,
+  getStatsInfo,
 } from "../stats/engine.js";
+import { ServiceError } from "./riotService.js";
 
 const ROLE_LABELS: Record<string, string> = {
   "1": "Jungle",
@@ -53,6 +55,8 @@ const LANE_ORDER = ["Top", "Jungle", "Mid", "Bottom", "Support"] as const;
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 async function patchString(): Promise<string> {
+  const snapshotPatch = getStatsInfo().patch;
+  if (snapshotPatch) return snapshotPatch;
   const v = await getVersion();
   return v.split(".").slice(0, 2).join("_");
 }
@@ -73,7 +77,7 @@ async function resolveChampion(key: string) {
       };
     }
   }
-  throw new Error(`Unknown champion "${key}"`);
+  throw new ServiceError(404, `No champion called "${key}".`);
 }
 
 async function champMeta(champId: number) {
@@ -119,23 +123,27 @@ export async function getChampionMatchups(
   const data = await fetchMatchups(champ.id);
   const rankId = rankParam ? (RANK_MAP[rankParam] ?? rankParam) : "17";
   const rankBucket = data[rankId] ?? data["10"] ?? data["8"];
-  if (!rankBucket) throw new Error("No matchup data for this rank");
+  if (!rankBucket) throw new ServiceError(404, "No matchup data for this rank.");
 
   // Pick role.
+  const roleIds = Object.keys(rankBucket).filter((r) => ROLE_LABELS[r]);
+  if (roleIds.length === 0) {
+    throw new ServiceError(404, "No matchup data for this champion.");
+  }
   let roleId: string;
-  if (roleParam && ROLE_KEYS[roleParam.toLowerCase()]) {
-    roleId = ROLE_KEYS[roleParam.toLowerCase()]!;
+  if (roleParam) {
+    roleId = ROLE_KEYS[roleParam.toLowerCase()] ?? roleParam;
   } else {
     // Default to the role with most matchup entries.
-    roleId = Object.keys(rankBucket).reduce((best, r) => {
-      const bLen = rankBucket[best]?.[0]?.length ?? 0;
-      const rLen = rankBucket[r]?.[0]?.length ?? 0;
+    roleId = roleIds.reduce((best, r) => {
+      const bLen = rankBucket[best]?.length ?? 0;
+      const rLen = rankBucket[r]?.length ?? 0;
       return rLen > bLen ? r : best;
     });
   }
 
-  const roleArr = rankBucket[roleId]?.[0] as number[][] | undefined;
-  if (!roleArr) throw new Error("No matchup data for this role");
+  const roleArr = rankBucket[roleId];
+  if (!roleArr) throw new ServiceError(404, "No matchup data for this role.");
 
   // Parse entries: [oppChampId, wins, games, ...diffs]
   const entries: MatchupEntry[] = [];

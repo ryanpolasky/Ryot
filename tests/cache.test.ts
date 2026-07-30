@@ -41,4 +41,40 @@ describe("TtlCache", () => {
     expect(cache.get<number>("a")).toBe(1);
     expect(cache.get<number>("c")).toBe(3);
   });
+
+  it("coalesces concurrent cache misses for the same key", async () => {
+    const cache = new TtlCache();
+    const compute = vi.fn(async () => 42);
+
+    const values = await Promise.all([
+      cache.wrap("k", 60, compute),
+      cache.wrap("k", 60, compute),
+      cache.wrap("k", 60, compute),
+    ]);
+
+    expect(values).toEqual([42, 42, 42]);
+    expect(compute).toHaveBeenCalledTimes(1);
+  });
+
+  it("can disable stale fallback for volatile values", async () => {
+    vi.useFakeTimers();
+    try {
+      const cache = new TtlCache();
+      await cache.wrap("k", 1, async () => "old");
+      vi.advanceTimersByTime(2_000);
+
+      await expect(
+        cache.wrap(
+          "k",
+          1,
+          async () => {
+            throw new Error("not found");
+          },
+          false,
+        ),
+      ).rejects.toThrow("not found");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

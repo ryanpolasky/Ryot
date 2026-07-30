@@ -119,6 +119,17 @@ function badRegion(reply: import("fastify").FastifyReply) {
     .send({ error: "Invalid region. Use a platform like na1, euw1, kr." });
 }
 
+function boundedInt(
+  value: string | undefined,
+  fallback: number,
+  min: number,
+  max: number,
+): number {
+  const parsed = value?.trim() ? Number(value) : fallback;
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, Math.trunc(parsed)));
+}
+
 /**
  * Pulls an optional Bring-Your-Own-Key from the request header. The key is used
  * for that single request only and never stored or logged.
@@ -257,12 +268,7 @@ app.get<{ Params: { region: string; name: string; tag: string } }>(
     const { region, name, tag } = req.params;
     if (!isPlatform(region)) return badRegion(reply);
     try {
-      return await getProfile(
-        region,
-        decodeURIComponent(name),
-        decodeURIComponent(tag),
-        byok(req),
-      );
+      return await getProfile(region, name, tag, byok(req));
     } catch (err) {
       return handle(reply, err);
     }
@@ -283,17 +289,24 @@ app.get<{
   const key = byok(req);
   // BYOK users can page deeper; shared key is capped to protect the quota.
   const maxCount = key ? 100 : 20;
-  const start = Math.max(0, Number(req.query.start ?? 0) || 0);
-  const count = Math.min(
-    maxCount,
-    Math.max(1, Number(req.query.count ?? 10) || 10),
+  const start = boundedInt(
+    req.query.start,
+    0,
+    0,
+    Number.MAX_SAFE_INTEGER,
   );
+  const count = boundedInt(req.query.count, 10, 1, maxCount);
   // Optional server-side queue/type filter (match-v5), so deep-history queues
   // like ARAM can be pulled directly. `type` is allow-listed to Riot's values.
-  const queueId = Number(req.query.queue);
+  const queueId = boundedInt(
+    req.query.queue,
+    0,
+    0,
+    Number.MAX_SAFE_INTEGER,
+  );
   const allowedTypes = new Set(["ranked", "normal", "tourney", "tutorial"]);
   const filter = {
-    queue: Number.isFinite(queueId) && queueId > 0 ? queueId : undefined,
+    queue: queueId > 0 ? queueId : undefined,
     type:
       req.query.type && allowedTypes.has(req.query.type)
         ? req.query.type
@@ -313,11 +326,7 @@ app.get<{ Params: { region: string; matchId: string } }>(
     const { region, matchId } = req.params;
     if (!isPlatform(region)) return badRegion(reply);
     try {
-      return await getMatchTimeline(
-        region,
-        decodeURIComponent(matchId),
-        byok(req),
-      );
+      return await getMatchTimeline(region, matchId, byok(req));
     } catch (err) {
       return handle(reply, err);
     }
@@ -334,18 +343,9 @@ app.get<{
   const key = byok(req);
   // Each match is a separate API call, so cap the sample harder without a key.
   const maxSample = key ? 50 : 20;
-  const sample = Math.min(
-    maxSample,
-    Math.max(5, Number(req.query.sample ?? 20) || 20),
-  );
+  const sample = boundedInt(req.query.sample, 20, 5, maxSample);
   try {
-    return await getAccountStats(
-      region,
-      decodeURIComponent(name),
-      decodeURIComponent(tag),
-      sample,
-      key,
-    );
+    return await getAccountStats(region, name, tag, sample, key);
   } catch (err) {
     return handle(reply, err);
   }
@@ -362,13 +362,7 @@ app.get<{
   // it when the caller brings their own key or explicitly opts in.
   const detectPremades = req.query.premades === "1" || Boolean(key);
   try {
-    return await getLiveGame(
-      region,
-      decodeURIComponent(name),
-      decodeURIComponent(tag),
-      key,
-      detectPremades,
-    );
+    return await getLiveGame(region, name, tag, key, detectPremades);
   } catch (err) {
     return handle(reply, err);
   }
@@ -382,7 +376,7 @@ app.get<{
 }>("/api/build/:champion", async (req, reply) => {
   try {
     return await getRecommendedBuild(
-      decodeURIComponent(req.params.champion),
+      req.params.champion,
       req.query.role,
       req.query.rank,
     );
@@ -399,7 +393,7 @@ app.get<{
 }>("/api/matchups/:champion", async (req, reply) => {
   try {
     return await getChampionMatchups(
-      decodeURIComponent(req.params.champion),
+      req.params.champion,
       req.query.role,
       req.query.rank,
     );
@@ -412,7 +406,7 @@ app.get<{ Params: { champion: string } }>(
   "/api/roles/:champion",
   async (req, reply) => {
     try {
-      return await getRoleDistribution(decodeURIComponent(req.params.champion));
+      return await getRoleDistribution(req.params.champion);
     } catch (err) {
       return handle(reply, err);
     }

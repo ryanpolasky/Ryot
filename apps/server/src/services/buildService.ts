@@ -27,7 +27,11 @@ const SUMMONER_SPELL_NAME: Record<number, string> = {
 };
 import { cache } from "../cache.js";
 import { getChampionMap, getVersion } from "../ddragonStore.js";
-import { assertStatsReady, fetchOverview } from "../stats/engine.js";
+import {
+  assertStatsReady,
+  fetchOverview,
+  getStatsInfo,
+} from "../stats/engine.js";
 import { ServiceError } from "./riotService.js";
 
 /** Internal role ids (kept stable across the build/meta services). */
@@ -192,13 +196,19 @@ export async function getRecommendedBuild(
   const overviewData = await fetchOverview(champId);
 
   // Resolve rank.
-  const rankId = rankParam ? (RANK_MAP[rankParam] ?? rankParam) : "17";
-  const rankBucket =
-    overviewData[rankId] ?? overviewData["10"] ?? overviewData["8"];
-  if (!rankBucket) throw new Error("No data for this rank");
+  const requestedRankId = rankParam ? (RANK_MAP[rankParam] ?? rankParam) : "17";
+  const rankId = [requestedRankId, "10", "8"].find(
+    (id, index, ids) => ids.indexOf(id) === index && overviewData[id],
+  );
+  if (!rankId) throw new ServiceError(404, "No build data for this rank.");
+  const rankBucket = overviewData[rankId]!;
 
   // Available roles.
-  const availableRoles = Object.keys(rankBucket)
+  const roleIds = Object.keys(rankBucket).filter((r) => ROLE_LABELS[r]);
+  if (roleIds.length === 0) {
+    throw new ServiceError(404, "No build data for this champion.");
+  }
+  const availableRoles = roleIds
     .filter((r) => ROLE_LABELS[r])
     .sort((a, b) => {
       const am = (rankBucket[a]?.[0] as unknown[])?.[6] as
@@ -217,7 +227,7 @@ export async function getRecommendedBuild(
     roleId = ROLE_MAP[roleParam.toLowerCase()] ?? roleParam;
   } else {
     // Pick highest-match-count role.
-    roleId = Object.keys(rankBucket).reduce((best, r) => {
+    roleId = roleIds.reduce((best, r) => {
       const bm = (rankBucket[best]?.[0] as unknown[])?.[6] as
         | [number, number]
         | undefined;
@@ -229,7 +239,7 @@ export async function getRecommendedBuild(
   }
 
   const roleData = rankBucket[roleId]?.[0] as unknown[] | undefined;
-  if (!roleData) throw new Error("No data for this role");
+  if (!roleData) throw new ServiceError(404, "No build data for this role.");
 
   // ── parse blocks ─────────────────────────────────────────────────────────
 
@@ -281,10 +291,15 @@ export async function getRecommendedBuild(
   const primaryPerks = perkIds.slice(1, 4).map(resolvePerk);
   const secondaryPerks = perkIds.slice(4, 6).map(resolvePerk);
 
-  // Block 8: stat shards [matches, wins, [shard1, shard2, shard3]], values are perk IDs.
-  const shardBlock = roleData[8] as [number, number, string[]] | undefined;
+  // Block 8: stat shards [matches, wins, [shard1, shard2, shard3]], values are
+  // perk IDs. The aggregator emits them as numbers, so normalise before the
+  // name lookup - otherwise an unmapped shard leaks a number into `shards`,
+  // which is declared (and consumed) as a string list.
+  const shardBlock = roleData[8] as
+    | [number, number, Array<string | number>]
+    | undefined;
   const shardRaw = shardBlock?.[2] ?? [];
-  const shards = shardRaw.map((s) => STAT_SHARD_NAME[s] ?? s);
+  const shards = shardRaw.map((s) => STAT_SHARD_NAME[String(s)] ?? String(s));
   const shardIds = shardRaw
     .map((s) => Number(s))
     .filter((n) => Number.isFinite(n));
@@ -330,7 +345,7 @@ export async function getRecommendedBuild(
     championIcon: champIcon,
     role: ROLE_LABELS[roleId] ?? roleId,
     rank: RANK_LABELS[rankId] ?? rankId,
-    patch: version,
+    patch: getStatsInfo().patch?.replace("_", ".") ?? version,
     games,
     wins,
     winRate: games > 0 ? Math.round((100 * wins) / games) : 0,

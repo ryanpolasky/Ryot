@@ -56,6 +56,7 @@ export class RateLimiter {
       if (err instanceof RiotApiError && err.isRateLimited && attempt < 3) {
         const wait = (err.retryAfter ?? 1) * 1000 + 250;
         await sleep(wait);
+        await this.acquire();
         return this.runWithRetry(fn, attempt + 1);
       }
       throw err;
