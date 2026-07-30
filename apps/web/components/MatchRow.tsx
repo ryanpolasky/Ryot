@@ -1,5 +1,11 @@
 import type { DDragonChampion, MatchDTO, MatchParticipant } from "@lc/shared";
-import { computeMatchAwards, ddragonImg, queueName } from "@lc/shared";
+import {
+  computeMatchAwards,
+  ddragonImg,
+  matchDurationMinutes,
+  matchDurationSeconds,
+  queueName,
+} from "@lc/shared";
 import { duration, kda, timeAgo } from "@/lib/format";
 import { onIconError } from "@/lib/img";
 
@@ -43,7 +49,7 @@ export default function MatchRow({
 
   const win = me.win;
   const cs = me.totalMinionsKilled + me.neutralMinionsKilled;
-  const mins = match.info.gameDuration / 60;
+  const mins = matchDurationMinutes(match.info);
   const items = [me.item0, me.item1, me.item2, me.item3, me.item4, me.item5];
   const blue = match.info.participants.filter((p) => p.teamId === 100);
   const red = match.info.participants.filter((p) => p.teamId === 200);
@@ -66,7 +72,7 @@ export default function MatchRow({
         </div>
         <div className="stat mt-0.5 truncate text-[11px] text-faint">
           {timeAgo(match.info.gameCreation)} ·{" "}
-          {duration(match.info.gameDuration)}
+          {duration(matchDurationSeconds(match.info))}
         </div>
         {region && !local && (
           <a

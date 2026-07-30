@@ -9,6 +9,7 @@
  * - Stat superlatives: lighthearted, individual bests across the whole lobby
  *   (Vision God, Sharpshooter, KDA King, Unkillable, Farm Lord, etc.).
  */
+import { matchDurationMinutes } from "./match.js";
 import type { MatchDTO, MatchParticipant } from "./riot/types.js";
 
 export type AwardTone = "mvp" | "good" | "bad" | "neutral";
@@ -65,7 +66,7 @@ function fmtPct(x: number): string {
 
 /** Build per-player derived metrics, normalised within each team. */
 function derive(match: MatchDTO): Derived[] {
-  const mins = Math.max(1, match.info.gameDuration / 60);
+  const mins = matchDurationMinutes(match.info);
   const teamTotals = new Map<
     number,
     { kills: number; dmg: number; gold: number; vision: number; deaths: number }

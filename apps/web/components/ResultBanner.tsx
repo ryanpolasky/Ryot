@@ -1,5 +1,10 @@
 import type { MatchDTO } from "@lc/shared";
-import { ddragonImg, queueName } from "@lc/shared";
+import {
+  ddragonImg,
+  matchDurationMinutes,
+  matchDurationSeconds,
+  queueName,
+} from "@lc/shared";
 
 function fmtDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -24,8 +29,9 @@ export default function ResultBanner({
 
   const win = me.win;
   const cs = me.totalMinionsKilled + me.neutralMinionsKilled;
-  const csPerMin = match.info.gameDuration
-    ? (cs / (match.info.gameDuration / 60)).toFixed(1)
+  const durationSec = matchDurationSeconds(match.info);
+  const csPerMin = durationSec
+    ? (cs / matchDurationMinutes(match.info)).toFixed(1)
     : "0";
   const kda =
     me.deaths === 0
@@ -67,7 +73,7 @@ export default function ResultBanner({
           <span className="text-faint">·</span>
           <span>{queueName(match.info.queueId)}</span>
           <span className="text-faint">·</span>
-          <span>{fmtDuration(match.info.gameDuration)}</span>
+          <span>{fmtDuration(durationSec)}</span>
         </div>
       </div>
     </div>

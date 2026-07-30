@@ -12,6 +12,7 @@
  *
  * Pure module, no API calls, so it unit tests and runs on either side.
  */
+import { matchDurationSeconds, matchEndTimestamp } from "./match.js";
 import type { MatchDTO } from "./riot/types.js";
 
 export type SessionTagTone = "good" | "bad" | "neutral";
@@ -76,9 +77,7 @@ function kdaValue(k: number, d: number, a: number): number {
 }
 
 function endOf(m: MatchDTO): number {
-  return (
-    m.info.gameEndTimestamp ?? m.info.gameCreation + m.info.gameDuration * 1000
-  );
+  return matchEndTimestamp(m.info);
 }
 
 /**
@@ -158,7 +157,7 @@ function summarise(
       assists: p.assists,
       kda: kdaValue(p.kills, p.deaths, p.assists),
       gameCreation: m.info.gameCreation,
-      gameDuration: m.info.gameDuration,
+      gameDuration: matchDurationSeconds(m.info),
       lpDeltaEst: p.win ? lpWin : -lpLoss,
     };
   });

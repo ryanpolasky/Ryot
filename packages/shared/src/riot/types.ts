@@ -119,7 +119,12 @@ export interface MatchTeam {
 
 export interface MatchInfo {
   gameCreation: number;
-  gameDuration: number; // seconds
+  /**
+   * Seconds when `gameEndTimestamp` is present (post-patch 11.20), but
+   * MILLISECONDS on older matches that lack it. Never read this directly -
+   * use `matchDurationSeconds` / `matchDurationMinutes` from `match.ts`.
+   */
+  gameDuration: number;
   gameEndTimestamp?: number;
   gameMode: string;
   gameType: string;

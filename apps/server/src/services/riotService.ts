@@ -4,6 +4,7 @@ import {
   groupPremades,
   LeagueEntryDTO,
   MatchDTO,
+  matchDurationMinutes,
   MatchTimelineDTO,
   Platform,
   RiotAccount,
@@ -294,7 +295,7 @@ async function annotateRecentForm(
             .slice(0, SAMPLE)
             .map((id) =>
               cache
-                .wrap(`match:${platform}:${id}`, config.cacheTtl.match, () =>
+                .wrap(`match:${id}`, config.cacheTtl.match, () =>
                   limiter.schedule(() => riot(byokKey).getMatch(platform, id)),
                 )
                 .catch(() => undefined),
@@ -432,6 +433,7 @@ export async function getLiveGame(
         limiter.schedule(() =>
           riot(byokKey).getActiveGameByPuuid(platform, account.puuid),
         ),
+      false,
     );
 
     const participants: ScoutParticipant[] = await Promise.all(
@@ -576,12 +578,14 @@ export async function getAccountStats(
     let oWins = 0,
       oKills = 0,
       oDeaths = 0,
-      oAssists = 0;
+      oAssists = 0,
+      analyzedGames = 0;
 
     for (const m of matches) {
       const me = m.info.participants.find((p) => p.puuid === account.puuid);
       if (!me) continue;
-      const mins = Math.max(1, m.info.gameDuration / 60);
+      analyzedGames += 1;
+      const mins = matchDurationMinutes(m.info);
       const cs = me.totalMinionsKilled + me.neutralMinionsKilled;
 
       let c = byChamp.get(me.championId);
@@ -642,7 +646,7 @@ export async function getAccountStats(
       points: mm.championPoints,
     }));
 
-    const games = matches.length;
+    const games = analyzedGames;
     return {
       version,
       account,
