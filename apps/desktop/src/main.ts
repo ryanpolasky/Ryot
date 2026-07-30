@@ -11,7 +11,7 @@ import {
   type IpcMainInvokeEvent,
 } from "electron";
 import { mkdirSync, writeFileSync, existsSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
 import { uIOhook, UiohookKey } from "uiohook-napi";
 
@@ -49,6 +49,7 @@ let pregameWin: BrowserWindow | null = null;
 let overlayInteractive = false;
 let overlayCalibrating = false;
 let champSelectPollTimer: ReturnType<typeof setInterval> | null = null;
+let champSelectPollInFlight = false;
 let wasInChampSelect = false;
 let lastRevealedGame = false;
 // Overlay auto-hide: the overlay is an in-game HUD, so it should be visible only
@@ -111,7 +112,8 @@ function isSafeExternalScheme(targetUrl: string): boolean {
 function isInAppNavigation(targetUrl: string): boolean {
   try {
     const u = new URL(targetUrl);
-    if (u.protocol === "file:") return true;
+    const helper = pathToFileURL(join(__dirname, "loading.html"));
+    if (u.protocol === "file:") return u.pathname === helper.pathname;
     return u.origin === new URL(loadSettings().ryotUrl).origin;
   } catch {
     return false;
@@ -164,7 +166,7 @@ function createMainWindow(startUrl: string) {
     "did-fail-load",
     (_e, code, _desc, failedUrl, isMainFrame) => {
       if (!isMainFrame || code === -3 /* aborted */) return;
-      const url = new URL(`file://${join(__dirname, "loading.html")}`);
+      const url = pathToFileURL(join(__dirname, "loading.html"));
       url.searchParams.set("error", "1");
       url.searchParams.set("target", failedUrl);
       mainWin?.loadURL(url.toString());
@@ -237,13 +239,13 @@ function createTray() {
 
 function createOverlay() {
   const display = screen.getPrimaryDisplay();
-  const { width, height } = display.workAreaSize;
+  const { width, height, x, y } = display.bounds;
 
   overlayWin = new BrowserWindow({
     width,
     height,
-    x: 0,
-    y: 0,
+    x,
+    y,
     transparent: true,
     frame: false,
     resizable: false,
@@ -269,7 +271,7 @@ function createOverlay() {
   overlayWin.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   overlayWin.setIgnoreMouseEvents(true, { forward: true });
 
-  const url = new URL(`file://${join(__dirname, "overlay.html")}`);
+  const url = pathToFileURL(join(__dirname, "overlay.html"));
   if (MOCK) url.searchParams.set("mock", "1");
   url.searchParams.set("api", loadSettings().apiUrl);
   overlayWin.loadURL(url.toString());
@@ -307,7 +309,7 @@ function openSettings() {
   }
   settingsWin = new BrowserWindow({
     width: 520,
-    height: 560,
+    height: 680,
     resizable: false,
     backgroundColor: "#0a0a0b",
     title: "Ryot Settings",
@@ -322,7 +324,7 @@ function openSettings() {
       sandbox: false,
     },
   });
-  settingsWin.loadURL(`file://${join(__dirname, "settings.html")}`);
+  settingsWin.loadURL(pathToFileURL(join(__dirname, "settings.html")).href);
   settingsWin.on("closed", () => (settingsWin = null));
 }
 
@@ -356,7 +358,7 @@ function openPregame() {
       sandbox: false,
     },
   });
-  const url = new URL(`file://${join(__dirname, "pregame.html")}`);
+  const url = pathToFileURL(join(__dirname, "pregame.html"));
   if (MOCK) url.searchParams.set("mock", "1");
   pregameWin.loadURL(url.toString());
   pregameWin.on("closed", () => (pregameWin = null));
@@ -399,7 +401,10 @@ function startChampSelectPolling() {
   );
 
   champSelectPollTimer = setInterval(async () => {
-    const settings = loadSettings();
+    if (champSelectPollInFlight) return;
+    champSelectPollInFlight = true;
+    try {
+      const settings = loadSettings();
 
     // ── Auto lobby reveal on game start (independent of pregame setting). ──
     if (settings.autoReveal && !MOCK) {
@@ -430,8 +435,11 @@ function startChampSelectPolling() {
     }
 
     // Forward session state to pregame window.
-    if (session && pregameWin) {
-      pregameWin.webContents.send("pregame:session", session);
+      if (session && pregameWin) {
+        pregameWin.webContents.send("pregame:session", session);
+      }
+    } finally {
+      champSelectPollInFlight = false;
     }
   }, 2000);
 }
@@ -441,12 +449,15 @@ function startChampSelectPolling() {
 app.on(
   "certificate-error",
   (event, _wc, url, _error, _certificate, callback) => {
-    if (url.startsWith("https://127.0.0.1")) {
-      event.preventDefault();
-      callback(true);
-    } else {
-      callback(false);
-    }
+    try {
+      const target = new URL(url);
+      if (target.protocol === "https:" && target.hostname === "127.0.0.1") {
+        event.preventDefault();
+        callback(true);
+        return;
+      }
+    } catch {}
+    callback(false);
   },
 );
 
@@ -456,12 +467,7 @@ app.on(
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
-  app.on("second-instance", () => {
-    if (mainWin) {
-      if (mainWin.isMinimized()) mainWin.restore();
-      mainWin.focus();
-    }
-  });
+  app.on("second-instance", showMainWindow);
 }
 
 app.whenReady().then(async () => {
@@ -566,11 +572,11 @@ app.whenReady().then(async () => {
   function verifySender(event: IpcMainInvokeEvent): boolean {
     try {
       const frameUrl = event.senderFrame?.url;
-      if (!frameUrl) return false;
-      if (frameUrl.startsWith("file://")) return true;
-      return (
-        new URL(frameUrl).origin === new URL(loadSettings().ryotUrl).origin
-      );
+      if (!frameUrl || event.sender !== mainWin?.webContents) return false;
+      const frame = new URL(frameUrl);
+      const helper = pathToFileURL(join(__dirname, "loading.html"));
+      if (frame.protocol === "file:") return frame.pathname === helper.pathname;
+      return frame.origin === new URL(loadSettings().ryotUrl).origin;
     } catch {
       return false;
     }

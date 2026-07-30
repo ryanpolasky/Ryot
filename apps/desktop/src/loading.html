@@ -56,10 +56,13 @@
       const params = new URLSearchParams(location.search);
       if (params.get("error") === "1") {
         const target = params.get("target") || "the configured URL";
-        document.getElementById("msg").innerHTML =
-          "Couldn't reach <code>" +
-          target +
-          "</code>.<br/>Make sure your Ryot server is running, or set the correct URL in Settings.";
+        const msg = document.getElementById("msg");
+        const code = document.createElement("code");
+        code.textContent = target;
+        msg.replaceChildren("Couldn't reach ", code, ".", document.createElement("br"));
+        msg.append(
+          "Make sure your Ryot server is running, or set the correct URL in Settings.",
+        );
         document.getElementById("open").style.display = "inline-block";
         document.getElementById("retry").style.display = "inline-block";
       }

@@ -10,11 +10,23 @@
     <h1><b>RY</b>OT SETTINGS</h1>
     <div class="rule"></div>
 
-    <label for="ryotUrl">Ryot server URL</label>
-    <input id="ryotUrl" type="text" placeholder="https://ryot.lol" />
-    <div class="hint">
-      The hosted Ryot instance (server + web). No API key needed here.
-    </div>
+    <label for="ryotUrl">Ryot web URL</label>
+    <input
+      id="ryotUrl"
+      type="url"
+      required
+      placeholder="https://ryot.lol"
+    />
+    <div class="hint">The hosted Ryot web interface.</div>
+
+    <label for="apiUrl">Ryot API URL</label>
+    <input
+      id="apiUrl"
+      type="url"
+      required
+      placeholder="https://api.ryot.lol"
+    />
+    <div class="hint">The backend used by the pre-game companion.</div>
 
     <div class="row">
       <div>
@@ -88,13 +100,14 @@
       async function init() {
         const s = await window.settingsApi.get();
         $("ryotUrl").value = s.ryotUrl ?? "";
+        $("apiUrl").value = s.apiUrl ?? "";
         $("defaultRiotId").value = s.defaultRiotId ?? "";
         fillRegions(s.defaultRegion ?? "na1");
         $("pregameEnabled").checked = s.pregameEnabled !== false;
         $("autoReveal").checked = s.autoReveal !== false;
         $("autoImportRunes").checked = !!s.autoImportRunes;
 
-        const displays = window.settingsApi.getDisplays();
+        const displays = await window.settingsApi.getDisplays();
         $("pregameDisplay").innerHTML = displays
           .map(
             (d) =>
@@ -104,8 +117,11 @@
       }
 
       $("save").addEventListener("click", async () => {
+        if (!$("ryotUrl").reportValidity() || !$("apiUrl").reportValidity())
+          return;
         await window.settingsApi.save({
           ryotUrl: $("ryotUrl").value.trim(),
+          apiUrl: $("apiUrl").value.trim(),
           defaultRiotId: $("defaultRiotId").value.trim(),
           defaultRegion: $("defaultRegion").value,
           pregameDisplayId: Number($("pregameDisplay").value) || 0,

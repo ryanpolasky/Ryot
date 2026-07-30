@@ -144,6 +144,9 @@ function lcuRequest<T>(
         });
       },
     );
+    req.setTimeout(5_000, () =>
+      req.destroy(new Error("League client request timed out.")),
+    );
     req.on("error", reject);
     if (payload) req.write(payload);
     req.end();
@@ -194,7 +197,10 @@ export async function getRecentMatches(count = 20): Promise<unknown[]> {
     const puuid = summoner?.puuid;
     if (!puuid) return [];
     // endIndex is inclusive; clients cap the window so we keep it modest.
-    const endIndex = Math.max(0, Math.min(count, 50) - 1);
+    const normalizedCount = Number.isFinite(count)
+      ? Math.min(50, Math.max(1, Math.trunc(count)))
+      : 20;
+    const endIndex = normalizedCount - 1;
     const { status, data } = await lcuRequest<{
       games?: { games?: unknown[] };
     }>(
@@ -260,12 +266,26 @@ interface RunePage {
 
 /**
  * Create (and select) a rune page in the client. If the client is at its page
- * limit, we delete a previously imported Ryot page (or any deletable page) and
- * retry once.
+ * limit, we delete a previously imported Ryot page and retry once.
  */
 export async function importRunes(payload: RuneImportPayload): Promise<void> {
   const creds = readCredentials();
   if (!creds) throw new Error("League client is not running.");
+  if (
+    typeof payload?.name !== "string" ||
+    payload.name.trim().length === 0 ||
+    payload.name.length > 100 ||
+    !Number.isInteger(payload.primaryStyleId) ||
+    payload.primaryStyleId <= 0 ||
+    !Number.isInteger(payload.subStyleId) ||
+    payload.subStyleId <= 0 ||
+    payload.primaryStyleId === payload.subStyleId ||
+    !Array.isArray(payload.selectedPerkIds) ||
+    payload.selectedPerkIds.length !== 9 ||
+    payload.selectedPerkIds.some((id) => !Number.isInteger(id) || id <= 0)
+  ) {
+    throw new Error("Invalid rune import payload.");
+  }
 
   const body = {
     name: payload.name,
@@ -291,9 +311,8 @@ export async function importRunes(payload: RuneImportPayload): Promise<void> {
     const ryotPage = pages.data.find(
       (p) => p.isDeletable && p.name.startsWith("Ryot"),
     );
-    const victim = ryotPage ?? pages.data.find((p) => p.isDeletable);
-    if (victim) {
-      await lcuRequest(creds, "DELETE", `/lol-perks/v1/pages/${victim.id}`);
+    if (ryotPage) {
+      await lcuRequest(creds, "DELETE", `/lol-perks/v1/pages/${ryotPage.id}`);
       res = await attempt();
       if (res.status === 200 || res.status === 201) return;
     }
@@ -308,6 +327,15 @@ export async function importRunes(payload: RuneImportPayload): Promise<void> {
 export async function importSpells(payload: SpellImportPayload): Promise<void> {
   const creds = readCredentials();
   if (!creds) throw new Error("League client is not running.");
+  if (
+    !Number.isInteger(payload?.spell1Id) ||
+    payload.spell1Id <= 0 ||
+    !Number.isInteger(payload.spell2Id) ||
+    payload.spell2Id <= 0 ||
+    payload.spell1Id === payload.spell2Id
+  ) {
+    throw new Error("Invalid summoner spell import payload.");
+  }
 
   const inChampSelect = await lcuRequest<unknown>(
     creds,
@@ -380,6 +408,33 @@ export async function importItemSet(payload: {
 }): Promise<void> {
   const creds = readCredentials();
   if (!creds) throw new Error("League client is not running.");
+  if (
+    typeof payload?.title !== "string" ||
+    payload.title.trim().length === 0 ||
+    payload.title.length > 100 ||
+    !Number.isInteger(payload.championKey) ||
+    payload.championKey < 0 ||
+    !Array.isArray(payload.blocks) ||
+    payload.blocks.length === 0 ||
+    payload.blocks.length > 20 ||
+    payload.blocks.some(
+      (block) =>
+        typeof block?.type !== "string" ||
+        block.type.length === 0 ||
+        block.type.length > 100 ||
+        !Array.isArray(block.items) ||
+        block.items.length > 20 ||
+        block.items.some(
+          (item) =>
+            !/^\d{1,10}$/.test(item?.id) ||
+            !Number.isInteger(item.count) ||
+            item.count < 1 ||
+            item.count > 99,
+        ),
+    )
+  ) {
+    throw new Error("Invalid item set import payload.");
+  }
 
   const body = {
     title: payload.title,

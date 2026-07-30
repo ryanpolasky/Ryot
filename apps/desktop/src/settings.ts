@@ -64,22 +64,74 @@ function settingsPath(): string {
   return join(app.getPath("userData"), "settings.json");
 }
 
+function normalizedUrl(value: unknown, fallback: string): string {
+  if (typeof value !== "string") return fallback;
+  try {
+    const parsed = new URL(value.trim());
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+      return fallback;
+    }
+    return value.trim().replace(/\/+$/, "");
+  } catch {
+    return fallback;
+  }
+}
+
+function normalizeSettings(value: unknown): Settings {
+  const next =
+    value && typeof value === "object" ? (value as Partial<Settings>) : {};
+  return {
+    ryotUrl: normalizedUrl(next.ryotUrl, DEFAULTS.ryotUrl),
+    apiUrl: normalizedUrl(next.apiUrl, DEFAULTS.apiUrl),
+    defaultRiotId:
+      typeof next.defaultRiotId === "string"
+        ? next.defaultRiotId.trim().slice(0, 100)
+        : DEFAULTS.defaultRiotId,
+    defaultRegion:
+      typeof next.defaultRegion === "string" &&
+      /^[a-z]{2,4}\d?$/.test(next.defaultRegion)
+        ? next.defaultRegion
+        : DEFAULTS.defaultRegion,
+    pregameDisplayId: Number.isInteger(next.pregameDisplayId)
+      ? next.pregameDisplayId!
+      : DEFAULTS.pregameDisplayId,
+    pregameEnabled:
+      typeof next.pregameEnabled === "boolean"
+        ? next.pregameEnabled
+        : DEFAULTS.pregameEnabled,
+    autoReveal:
+      typeof next.autoReveal === "boolean"
+        ? next.autoReveal
+        : DEFAULTS.autoReveal,
+    autoImportRunes:
+      typeof next.autoImportRunes === "boolean"
+        ? next.autoImportRunes
+        : DEFAULTS.autoImportRunes,
+    closeToTray:
+      typeof next.closeToTray === "boolean"
+        ? next.closeToTray
+        : DEFAULTS.closeToTray,
+    overlayLayout:
+      next.overlayLayout === null ||
+      (typeof next.overlayLayout === "object" && next.overlayLayout)
+        ? next.overlayLayout
+        : DEFAULTS.overlayLayout,
+  };
+}
+
 export function loadSettings(): Settings {
   try {
     const path = settingsPath();
     if (!existsSync(path)) return { ...DEFAULTS };
-    const parsed = JSON.parse(readFileSync(path, "utf8")) as Partial<Settings>;
-    return { ...DEFAULTS, ...parsed };
+    const parsed = JSON.parse(readFileSync(path, "utf8")) as unknown;
+    return normalizeSettings(parsed);
   } catch {
     return { ...DEFAULTS };
   }
 }
 
 export function saveSettings(next: Partial<Settings>): Settings {
-  const merged = { ...loadSettings(), ...next };
-  // Normalize: strip any trailing slash on the URLs.
-  merged.ryotUrl = merged.ryotUrl.replace(/\/+$/, "");
-  merged.apiUrl = merged.apiUrl.replace(/\/+$/, "");
+  const merged = normalizeSettings({ ...loadSettings(), ...next });
   writeFileSync(settingsPath(), JSON.stringify(merged, null, 2), "utf8");
   return merged;
 }

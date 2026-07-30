@@ -105,7 +105,12 @@ export function watchLeagueForeground(
     child.on("error", () => emit(true));
     child.on("exit", () => {
       child = null;
-      if (!stopped) restart = setTimeout(start, 2000); // respawn if it dies
+      if (stopped) return;
+      // Fail open while we have no watcher: if PowerShell died (or keeps dying,
+      // e.g. Add-Type blocked by policy) the last emitted value could be
+      // "League not focused", which would leave the overlay hidden forever.
+      emit(true);
+      restart = setTimeout(start, 2000); // respawn if it dies
     });
   };
 

@@ -7,7 +7,7 @@
   --line: #26242b;
   --bone: #f4f1e8;
   --muted: #a39d92;
-  --faint: #6a655e;
+  --faint: #857f74;
   --gold: #c8aa6e;
   --gold2: #ecd197;
   --notch: polygon(
@@ -144,6 +144,12 @@ button.primary:hover {
 }
 button:hover {
   border-color: var(--gold);
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
 }
 
 .saved {
