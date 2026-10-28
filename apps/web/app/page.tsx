@@ -28,6 +28,25 @@ const FEATURES = [
 export default function HomePage() {
   return (
     <div className="animate-riseIn">
+      <div
+        role="status"
+        className="mb-4 border border-line border-l-[10px] border-l-gold bg-surface px-4 py-3 text-sm leading-relaxed text-muted"
+      >
+        <strong className="mb-0.5 block text-bone">
+          Sorry, Ryot isn&apos;t live right now.
+        </strong>
+        Ryot is paused indefinitely until Riot approves the production API key.
+        You can still browse the source code and self-host via{" "}
+        <a
+          href="https://github.com/ryanpolasky/Ryot"
+          className="text-gold underline underline-offset-4"
+          target="_blank"
+          rel="noopener"
+        >
+          GitHub
+        </a>
+        .
+      </div>
       {/* Hero */}
       <section className="relative pb-12 pt-6">
         <p className="eyebrow mb-5">// League of Legends companion</p>
