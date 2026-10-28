@@ -1,3 +1,5 @@
+Ryot is paused until Riot approves the production API key.
+
 # <span style="color:#c8aa6e">Ry</span>ot
 
 **Open-source League of Legends companion - OP.GG-style stats · Porofessor-style live-game scout · Blitz-style in-game overlay. Self-hostable for you and your friends.**

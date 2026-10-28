@@ -1,0 +1,10 @@
+name = "ryot-paused"
+main = "worker.js"
+compatibility_date = "2025-11-05"
+workers_dev = false
+preview_urls = false
+
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = true
