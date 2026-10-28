@@ -1,5 +1,7 @@
 # <span style="color:#c8aa6e">Ry</span>ot
 
+> **Note:** Ryot is not live right now. The project is paused indefinitely until Riot approves the production API key, though the full codebase and self-hosted setup below remain available.
+
 **Open-source League of Legends companion - OP.GG-style stats · Porofessor-style live-game scout · Blitz-style in-game overlay. Self-hostable for you and your friends.**
 
 Ryot is a League companion I built because every other one eventually wanted my

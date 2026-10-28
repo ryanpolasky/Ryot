@@ -15,6 +15,7 @@ coverage/
 *.tsbuildinfo
 release/
 dist-electron/
+shots/
 
 # Locally-generated build/meta engine snapshot (gzipped JSON aggregates).
 apps/server/data/
